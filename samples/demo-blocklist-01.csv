@@ -1,0 +1,10 @@
+"domain","severity","reject_media","reject_reports","private_comment","public_comment","obfuscate"
+"qoto.org","suspend",TRUE,TRUE,,,TRUE
+"sealion.club","suspend",TRUE,TRUE,,,TRUE
+"develop.gab.com","suspend",TRUE,TRUE,,,TRUE
+"gab.ai","suspend",TRUE,TRUE,,,TRUE
+"gab.sleeck.eu","suspend",TRUE,TRUE,,,TRUE
+"gab.com","suspend",TRUE,TRUE,,,TRUE
+"kiwifarms.is","suspend",TRUE,TRUE,,,TRUE
+"kiwifarms.net","suspend",TRUE,TRUE,,,TRUE
+"gabfed.com","suspend",TRUE,TRUE,,,TRUE

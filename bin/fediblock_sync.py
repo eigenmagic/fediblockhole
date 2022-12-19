@@ -6,13 +6,16 @@ import toml
 import csv
 import requests
 import json
-import csv
 import time
+import os.path
+import urllib.request as urlr
 
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
-import pprint
+
+# Max size of a URL-fetched blocklist
+URL_BLOCKLIST_MAXSIZE = 1024 ** 3
 
 log = logging.getLogger('fediblock_sync')
 
@@ -20,34 +23,49 @@ CONFIGFILE = "/home/mastodon/etc/admin.conf"
 
 def sync_blocklists(conf: dict):
     """Sync instance blocklists from remote sources.
+
+    @param conf: A configuration dictionary
     """
     # Build a dict of blocklists we retrieve from remote sources.
     # We will merge these later using a merge algorithm we choose.
 
     blocklists = {}
     # Fetch blocklists from URLs
-    # for listurl in conf.blocklist_csv_sources:
-    #     blocklists[listurl] = {}
-    #     response = requests.get(url)
-    #     log.debug(f"Fetched blocklist CSV file: {response.content}")
+    if not conf.no_fetch_url:
+        log.info("Fetching domain blocks from URLs...")
+        for listurl in conf.blocklist_url_sources:
+            blocklists[listurl] = []
+            with urlr.urlopen(listurl) as fp:
+                rawdata = fp.read(URL_BLOCKLIST_MAXSIZE).decode('utf-8')
+                reader = csv.DictReader(rawdata.split('\n'))
+                for row in reader:
+                    blocklists[listurl].append(row)
+            if conf.save_intermediate:
+                save_intermediate_blocklist(blocklists[listurl], listurl, conf.savedir)
 
     # Fetch blocklists from remote instances
-    for blocklist_src in conf['blocklist_instance_sources']:
-        domain = blocklist_src['domain']
-        token = blocklist_src['token']
-        blocklists[domain] = fetch_instance_blocklist(token, domain)
+    if not conf.no_fetch_instance:
+        log.info("Fetching domain blocks from instances...")
+        for blocklist_src in conf.blocklist_instance_sources:
+            domain = blocklist_src['domain']
+            token = blocklist_src['token']
+            blocklists[domain] = fetch_instance_blocklist(token, domain)
+            if conf.save_intermediate:
+                save_intermediate_blocklist(blocklists[domain], domain, conf.savedir)
 
     # Merge blocklists into an update dict
     merged = merge_blocklists(blocklists)
-
-    # log.debug(f"Merged blocklist ready:\n")
-    # pprint.pp(merged)
+    if conf.blocklist_savefile:
+        log.info(f"Saving merged blocklist to {conf.blocklist_savefile}")
+        save_blocklist_to_file(merged.values(), conf.blocklist_savefile)
 
     # Push the blocklist to destination instances
-    for dest in conf['blocklist_instance_destinations']:
-        domain = dest['domain']
-        token = dest['token']
-        push_blocklist(token, domain, merged.values())
+    if not conf.no_push_instance:
+        log.info("Pushing domain blocks to instances...")
+        for dest in conf.blocklist_instance_destinations:
+            domain = dest['domain']
+            token = dest['token']
+            push_blocklist(token, domain, merged.values())
 
 def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
     """Merge fetched remote blocklists into a bulk update
@@ -56,14 +74,10 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
         'max' (the default) uses the highest severity block found
         'min' uses the lowest severity block found
     """
-    # log.debug(f"Merging blocklists {blocklists} ...")
-    # Remote blocklists may have conflicting overlaps. We need to
-    # decide whether or not to override earlier entries with later
-    # ones or not. How to choose which entry is 'correct'?
     merged = {}
 
     for key, blist in blocklists.items():
-        log.debug(f"Adding blocks from {key} ...")
+        log.debug(f"Merging blocks from {key} ...")
         for blockdef in blist:
             # log.debug(f"Checking blockdef {blockdef} ...")
             domain = blockdef['domain']
@@ -122,7 +136,12 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
 
 def fetch_instance_blocklist(token: str, host: str) -> list:
     """Fetch existing block list from server
+
+    @param token: The OAuth Bearer token to authenticate with.
+    @param host: The remote host to connect to.
+    @returns: A list of the admin domain blocks from the instance.
     """
+    log.info(f"Fetching instance blocklist from {host} ...")
     api_path = "/api/v1/admin/domain_blocks"
 
     url = f"https://{host}{api_path}"
@@ -154,28 +173,6 @@ def fetch_instance_blocklist(token: str, host: str) -> list:
 
     log.debug(f"Found {len(domain_blocks)} existing domain blocks.")
     return domain_blocks
-
-def export_blocklist(token: str, host: str, outfile: str):
-    """Export current server blocklist to a csv file"""
-    blocklist = fetch_instance_blocklist(token, host)
-    fieldnames = ['id', 'domain', 'severity', 'reject_media', 'reject_reports', 'private_comment', 'public_comment', 'obfuscate']
-
-    blocklist = sorted(blocklist, key=lambda x: int(x['id']))
-
-    with open(outfile, "w") as fp:
-        writer = csv.DictWriter(fp, fieldnames, extrasaction='ignore')
-        writer.writeheader()
-        writer.writerows(blocklist)
-
-def delete_blocklist(token: str, host: str, blockfile: str):
-    """Delete domain blocks listed in blockfile"""
-    with open(blockfile) as fp:
-        reader = csv.DictReader(fp)
-        for row in reader:
-            domain = row['domain']
-            id = row['id']
-            log.debug(f"Deleting {domain} (id: {id}) from blocklist...")
-            delete_block(token, host, id)
 
 def delete_block(token: str, host: str, id: int):
     """Remove a domain block"""
@@ -236,6 +233,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict]):
     @param host: The instance host, FQDN or IP
     @param blocklist: A list of block definitions. They must include the domain.
     """
+    log.info(f"Pushing blocklist to host {host} ...")
     # Fetch the existing blocklist from the instance
     serverblocks = fetch_instance_blocklist(token, host)
 
@@ -249,7 +247,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict]):
 
         try:
             blockdict = knownblocks[row['domain']]
-            log.info(f"Block already exists for {row['domain']}, merging data...")
+            log.debug(f"Block already exists for {row['domain']}, merging data...")
 
             # Check if anything is actually different and needs updating
             change_needed = False
@@ -276,7 +274,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict]):
                 time.sleep(1)
 
             else:
-                log.info("No differences detected. Not updating.")
+                log.debug("No differences detected. Not updating.")
 
         except KeyError:
             # domain doesn't have an entry, so we need to create one
@@ -303,18 +301,73 @@ def load_config(configfile: str):
     conf = toml.load(configfile)
     return conf
 
-def save_intermediate(blocklist: list, source: str, filedir: str):
+def save_intermediate_blocklist(blocklist: list[dict], source: str, filedir: str):
+    """Save a local copy of a blocklist we've downloaded
+    """
+    # Invent a filename based on the remote source
+    # If the source was a URL, convert it to something less messy
+    # If the source was a remote domain, just use the name of the domain
+    log.debug(f"Saving intermediate blocklist from {source}")
+    source = source.replace('/','-')
+    filename = f"{source}.csv"
+    filepath = os.path.join(filedir, filename)
+    save_blocklist_to_file(blocklist, filepath)
+
+def save_blocklist_to_file(blocklist: list[dict], filepath: str):
     """Save a blocklist we've downloaded from a remote source
 
-    Save a local copy of the remote blocklist after downloading it.
+    @param blocklist: A dictionary of block definitions, keyed by domain
+    @param filepath: The path to the file the list should be saved in.
     """
+    blocklist = sorted(blocklist, key=lambda x: x['domain'])
 
+    fieldnames = ['domain', 'severity', 'private_comment', 'public_comment', 'reject_media', 'reject_reports', 'obfuscate']
+    with open(filepath, "w") as fp:
+        writer = csv.DictWriter(fp, fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        writer.writerows(blocklist)
+
+def augment_args(args):
+    """Augment commandline arguments with config file parameters"""
+    conf = toml.load(args.config)
+
+    if not args.no_fetch_url:
+        args.no_fetch_url = conf.get('no_fetch_url', False)
+
+    if not args.no_fetch_instance:
+        args.no_fetch_instance = conf.get('no_fetch_instance', False)
+
+    if not args.no_push_instance:
+        args.no_push_instance = conf.get('no_push_instance', False)
+
+    if not args.blocklist_savefile:
+        args.blocklist_savefile = conf.get('blocklist_savefile', None)
+
+    if not args.save_intermediate:
+        args.save_intermediate = conf.get('save_intermediate', False)
+    
+    if not args.savedir:
+        args.savedir = conf.get('savedir', '/tmp')
+
+    args.blocklist_url_sources = conf.get('blocklist_url_sources')
+    args.blocklist_instance_sources = conf.get('blocklist_instance_sources')
+    args.blocklist_instance_destinations = conf.get('blocklist_instance_destinations')
+
+    return args
 
 if __name__ == '__main__':
 
     ap = argparse.ArgumentParser(description="Bulk blocklist tool",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ap.add_argument('-c', '--config', default='/etc/default/fediblockhole.conf.toml', help="Config file")
+
+    ap.add_argument('-o', '--outfile', dest="blocklist_savefile", help="Save merged blocklist to a local file.")
+    ap.add_argument('-S', '--save-intermediate', dest="save_intermediate", action='store_true', help="Save intermediate blocklists we fetch to local files.")
+    ap.add_argument('-D', '--savedir', dest="savedir", help="Directory path to save intermediate lists.")
+
+    ap.add_argument('--no-fetch-url', dest='no_fetch_url', action='store_true', help="Don't fetch from URLs, even if configured.")
+    ap.add_argument('--no-fetch-instance', dest='no_fetch_instance', action='store_true', help="Don't fetch from instances, even if configured.")
+    ap.add_argument('--no-push-instance', dest='no_push_instance', action='store_true', help="Don't push to instances, even if configured.")
 
     ap.add_argument('--loglevel', choices=['debug', 'info', 'warning', 'error', 'critical'], help="Set log output level.")
 
@@ -324,7 +377,7 @@ if __name__ == '__main__':
         log.setLevel(getattr(logging, levelname))
 
     # Load the configuration file
-    conf = load_config(args.config)
-    
+    args = augment_args(args)
+
     # Do the work of syncing
-    sync_blocklists(conf)
+    sync_blocklists(args)

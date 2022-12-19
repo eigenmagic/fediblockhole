@@ -1,20 +1,35 @@
 # List of instances to read blocklists from, 
 # with the Bearer token authorised by the instance
 blocklist_instance_sources = [
-    {
-        domain = 'eigenmagic.net',
-        token = '<a_token_with_read_auth>'
-    },
-    {
-        domain = 'jorts.horse',
-        token = '<a_different_token>'
-    },
+  { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>' },
+  { domain = 'jorts.horse', token = '<a_different_token>' },
+]
+
+# List of URLs to read csv blocklists from
+blocklist_url_sources = [
+    'file:///etc/fediblockhole/blocklist-01.csv',
+    'https://github.com/fediblockhole/samples/demo-blocklist-01.csv',
 ]
 
 # List of instances to write blocklist to
 blocklist_instance_destinations = [
-    {
-        domain = 'eigenmagic.net',
-        token = '<read_write_token>'
-    },
+  { domain = 'eigenmagic.net', token = '<read_write_token>' },
 ]
+
+## Store a local copy of the remote blocklists after we fetch them
+#keep_intermediate = true
+
+## Directory to store the local blocklist copies
+# savedir = '/tmp'
+
+## File to save the fully merged blocklist into
+# blocklist_savefile = '/tmp/merged_blocklist.csv'
+
+## Don't push blocklist to instances, even if they're defined above
+# no_push_instance = false
+
+## Don't fetch blocklists from URLs, even if they're defined above
+# no_fetch_url = false
+
+## Don't fetch blocklists from instances, even if they're defined above
+# no_fetch_instance = false
