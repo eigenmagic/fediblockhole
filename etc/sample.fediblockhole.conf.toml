@@ -1,0 +1,20 @@
+# List of instances to read blocklists from, 
+# with the Bearer token authorised by the instance
+blocklist_instance_sources = [
+    {
+        domain = 'eigenmagic.net',
+        token = '<a_token_with_read_auth>'
+    },
+    {
+        domain = 'jorts.horse',
+        token = '<a_different_token>'
+    },
+]
+
+# List of instances to write blocklist to
+blocklist_instance_destinations = [
+    {
+        domain = 'eigenmagic.net',
+        token = '<read_write_token>'
+    },
+]
