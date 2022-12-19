@@ -319,7 +319,11 @@ def save_blocklist_to_file(blocklist: list[dict], filepath: str):
     @param blocklist: A dictionary of block definitions, keyed by domain
     @param filepath: The path to the file the list should be saved in.
     """
-    blocklist = sorted(blocklist, key=lambda x: x['domain'])
+    try:
+        blocklist = sorted(blocklist, key=lambda x: x['domain'])
+    except KeyError:
+        log.error("Field 'domain' not found in blocklist. Are you sure the URLs are correct?")
+        log.debug(f"blocklist is: {blocklist}")
 
     fieldnames = ['domain', 'severity', 'private_comment', 'public_comment', 'reject_media', 'reject_reports', 'obfuscate']
     with open(filepath, "w") as fp:
