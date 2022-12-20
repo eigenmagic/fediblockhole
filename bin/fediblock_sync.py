@@ -148,7 +148,7 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
 def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dict:
     """Use a mergeplan to decide how to merge two overlapping block definitions
     
-    @param oldblock: The exist block definition.
+    @param oldblock: The existing block definition.
     @param newblock: The new block definition we want to merge in.
     @param mergeplan: How to merge. Choices are 'max', the default, and 'min'.
     """
@@ -156,13 +156,13 @@ def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dic
     blockdata = oldblock.copy()
 
     # If the public or private comment is different,
-    # append it to the existing comment, joined with a newline
+    # append it to the existing comment, joined with ', '
     # unless the comment is None or an empty string
     keylist = ['public_comment', 'private_comment']
     for key in keylist:
         try:
             if oldblock[key] != newblock[key] and newblock[key] not in ['', None]:
-                blockdata[key] = '\n'.join([oldblock[key], newblock[key]])
+                blockdata[key] = ', '.join([oldblock[key], newblock[key]])
         except KeyError:
             log.debug(f"Key '{key}' missing from block definition so cannot compare. Continuing...")
             continue
