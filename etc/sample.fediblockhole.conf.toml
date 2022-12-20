@@ -33,3 +33,9 @@ blocklist_instance_destinations = [
 
 ## Don't fetch blocklists from instances, even if they're defined above
 # no_fetch_instance = false
+
+## Set the mergeplan to use when dealing with overlaps between blocklists
+# The default 'max' mergeplan will use the harshest severity block found for a domain.
+# The 'min' mergeplan will use the lightest severity block found for a domain.
+# mergeplan = 'max'
+
