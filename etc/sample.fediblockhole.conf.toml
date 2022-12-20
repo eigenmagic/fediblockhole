@@ -1,19 +1,19 @@
 # List of instances to read blocklists from, 
 # with the Bearer token authorised by the instance
 blocklist_instance_sources = [
-  { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>' },
-  { domain = 'jorts.horse', token = '<a_different_token>' },
+  # { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>' },
+  # { domain = 'jorts.horse', token = '<a_different_token>' },
 ]
 
 # List of URLs to read csv blocklists from
 blocklist_url_sources = [
-    'file:///etc/fediblockhole/blocklist-01.csv',
+    # 'file:///etc/fediblockhole/blocklist-01.csv',
     'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-blocklist-01.csv',
 ]
 
 # List of instances to write blocklist to
 blocklist_instance_destinations = [
-  { domain = 'eigenmagic.net', token = '<read_write_token>' },
+  # { domain = 'eigenmagic.net', token = '<read_write_token>' },
 ]
 
 ## Store a local copy of the remote blocklists after we fetch them
@@ -39,12 +39,12 @@ blocklist_instance_destinations = [
 # The 'min' mergeplan will use the lightest severity block found for a domain.
 # mergeplan = 'max'
 
-## Set which fields we export
-## 'domain' and 'severity' are always exported, these are additional
-## 
-export_fields = ['public_comment']
-
 ## Set which fields we import
 ## 'domain' and 'severity' are always imported, these are additional
 ## 
 import_fields = ['public_comment', 'reject_media', 'reject_reports', 'obfuscate']
+
+## Set which fields we export
+## 'domain' and 'severity' are always exported, these are additional
+## 
+export_fields = ['public_comment']
