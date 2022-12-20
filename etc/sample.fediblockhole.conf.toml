@@ -39,3 +39,9 @@ blocklist_instance_destinations = [
 # The 'min' mergeplan will use the lightest severity block found for a domain.
 # mergeplan = 'max'
 
+## Include private_comment field when exporting or importing a blocklist.
+## By default this isn't exported or imported to keep private comments private, but
+## if you're using this tool to back up or maintain your own bulk blocklists you might
+## want to include the private comments as well. Use with care.
+## 
+#include_private_comments = false
