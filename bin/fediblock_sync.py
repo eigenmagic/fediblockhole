@@ -50,6 +50,16 @@ def sync_blocklists(conf: dict):
     # Build a dict of blocklists we retrieve from remote sources.
     # We will merge these later using a merge algorithm we choose.
 
+    # Always import these fields
+    import_fields = ['domain', 'severity']
+    # Add extra import fields if defined in config
+    import_fields.extend(conf.import_fields)
+
+    # Always export these fields
+    export_fields = ['domain', 'severity']
+    # Add extra export fields if defined in config
+    export_fields.extend(conf.export_fields)
+
     blocklists = {}
     # Fetch blocklists from URLs
     if not conf.no_fetch_url:
@@ -64,10 +74,16 @@ def sync_blocklists(conf: dict):
                     for boolkey in ['reject_media', 'reject_reports', 'obfuscate']:
                         if boolkey in row:
                             row[boolkey] = str2bool(row[boolkey])
+
+                    # Remove fields we don't want to import
+                    origrow = row.copy()
+                    for key in origrow:
+                        if key not in import_fields:
+                            del row[key]
                     blocklists[listurl].append(row)
 
             if conf.save_intermediate:
-                save_intermediate_blocklist(blocklists[listurl], listurl, conf.savedir)
+                save_intermediate_blocklist(blocklists[listurl], listurl, conf.savedir, export_fields)
 
     # Fetch blocklists from remote instances
     if not conf.no_fetch_instance:
@@ -75,15 +91,15 @@ def sync_blocklists(conf: dict):
         for blocklist_src in conf.blocklist_instance_sources:
             domain = blocklist_src['domain']
             token = blocklist_src['token']
-            blocklists[domain] = fetch_instance_blocklist(token, domain)
+            blocklists[domain] = fetch_instance_blocklist(token, domain, import_fields)
             if conf.save_intermediate:
-                save_intermediate_blocklist(blocklists[domain], domain, conf.savedir, conf.include_private_comments)
+                save_intermediate_blocklist(blocklists[domain], domain, conf.savedir, export_fields)
 
     # Merge blocklists into an update dict
-    merged = merge_blocklists(blocklists, conf.mergeplan, conf.include_private_comments)
+    merged = merge_blocklists(blocklists, conf.mergeplan)
     if conf.blocklist_savefile:
         log.info(f"Saving merged blocklist to {conf.blocklist_savefile}")
-        save_blocklist_to_file(merged.values(), conf.blocklist_savefile, conf.include_private_comments)
+        save_blocklist_to_file(merged.values(), conf.blocklist_savefile, export_fields)
 
     # Push the blocklist to destination instances
     if not conf.no_push_instance:
@@ -91,16 +107,14 @@ def sync_blocklists(conf: dict):
         for dest in conf.blocklist_instance_destinations:
             domain = dest['domain']
             token = dest['token']
-            push_blocklist(token, domain, merged.values(), conf.dryrun, conf.include_private_comments)
+            push_blocklist(token, domain, merged.values(), conf.dryrun, import_fields)
 
-def merge_blocklists(blocklists: dict, mergeplan: str='max',
-                    include_private_comments: bool=False) -> dict:
+def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
     """Merge fetched remote blocklists into a bulk update
 
     @param mergeplan: An optional method of merging overlapping block definitions
         'max' (the default) uses the highest severity block found
         'min' uses the lowest severity block found
-    @param include_private_comments: Include private comments in merged blocklist. Defaults to False.
     """
     merged = {}
 
@@ -110,21 +124,20 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max',
             domain = newblock['domain']
             if domain in merged:
                 log.debug(f"Overlapping block for domain {domain}. Merging...")
-                blockdata = apply_mergeplan(merged[domain], newblock, mergeplan, include_private_comments)
+                blockdata = apply_mergeplan(merged[domain], newblock, mergeplan)
             else:
                 # New block
-                blockdata = {
-                    'domain': newblock['domain'],
-                    # Default to Silence if nothing is specified
-                    'severity': newblock.get('severity', 'silence'),
-                    'public_comment': newblock.get('public_comment', ''),
-                    'obfuscate': newblock.get('obfuscate', True), # default obfuscate to True
-                }
-                sev = blockdata['severity'] # convenience variable
-                blockdata['reject_media'] = newblock.get('reject_media', REJECT_MEDIA_DEFAULT[sev])
-                blockdata['reject_reports'] = newblock.get('reject_reports', REJECT_REPORTS_DEFAULT[sev])
-                if include_private_comments:
-                    blockdata['private_comment']: newblock.get('private_comment', '')
+                blockdata = newblock
+                # blockdata = {
+                #     'domain': newblock['domain'],
+                #     # Default to Silence if nothing is specified
+                #     'severity': newblock.get('severity', 'silence'),
+                #     'public_comment': newblock.get('public_comment', ''),
+                #     'obfuscate': newblock.get('obfuscate', True), # default obfuscate to True
+                # }
+                # sev = blockdata['severity'] # convenience variable
+                # blockdata['reject_media'] = newblock.get('reject_media', REJECT_MEDIA_DEFAULT[sev])
+                # blockdata['reject_reports'] = newblock.get('reject_reports', REJECT_REPORTS_DEFAULT[sev])
 
             # end if
             log.debug(f"blockdata is: {blockdata}")
@@ -132,15 +145,12 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max',
         # end for
     return merged
 
-def apply_mergeplan(oldblock: dict, newblock: dict,
-                    mergeplan: str='max',
-                    include_private_comments: bool=False) -> dict:
+def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dict:
     """Use a mergeplan to decide how to merge two overlapping block definitions
     
     @param oldblock: The exist block definition.
     @param newblock: The new block definition we want to merge in.
     @param mergeplan: How to merge. Choices are 'max', the default, and 'min'.
-    @param include_private_comments: Include private comments in merged blocklist. Defaults to False.
     """
     # Default to the existing block definition
     blockdata = oldblock.copy()
@@ -148,9 +158,7 @@ def apply_mergeplan(oldblock: dict, newblock: dict,
     # If the public or private comment is different,
     # append it to the existing comment, joined with a newline
     # unless the comment is None or an empty string
-    keylist = ['public_comment']
-    if include_private_comments:
-        keylist.append('private_comment')
+    keylist = ['public_comment', 'private_comment']
     for key in keylist:
         try:
             if oldblock[key] != newblock[key] and newblock[key] not in ['', None]:
@@ -192,19 +200,21 @@ def apply_mergeplan(oldblock: dict, newblock: dict,
     # Use the severity level to set rejections, if not defined in newblock
     # If severity level is 'suspend', it doesn't matter what the settings is for
     # 'reject_media' or 'reject_reports'
-    blockdata['reject_media'] = newblock.get('reject_media', REJECT_MEDIA_DEFAULT[blockdata['severity']])
-    blockdata['reject_reports'] = newblock.get('reject_reports', REJECT_REPORTS_DEFAULT[blockdata['severity']])
+    # blockdata['reject_media'] = newblock.get('reject_media', REJECT_MEDIA_DEFAULT[blockdata['severity']])
+    # blockdata['reject_reports'] = newblock.get('reject_reports', REJECT_REPORTS_DEFAULT[blockdata['severity']])
     
-    log.debug(f"set reject_media to: {blockdata['reject_media']}")
-    log.debug(f"set reject_reports to: {blockdata['reject_reports']}")
+    # log.debug(f"set reject_media to: {blockdata['reject_media']}")
+    # log.debug(f"set reject_reports to: {blockdata['reject_reports']}")
 
     return blockdata
 
-def fetch_instance_blocklist(token: str, host: str) -> list:
+def fetch_instance_blocklist(token: str, host: str,
+    import_fields: list=['domain', 'severity']) -> list:
     """Fetch existing block list from server
 
     @param token: The OAuth Bearer token to authenticate with.
     @param host: The remote host to connect to.
+    @param import_fields: A list of fields to import from the remote instance.
     @returns: A list of the admin domain blocks from the instance.
     """
     log.info(f"Fetching instance blocklist from {host} ...")
@@ -238,6 +248,13 @@ def fetch_instance_blocklist(token: str, host: str) -> list:
             url = urlstring.strip('<').rstrip('>')
 
     log.debug(f"Found {len(domain_blocks)} existing domain blocks.")
+    # Remove fields not in import list
+    for row in domain_blocks:
+        origrow = row.copy()
+        for key in origrow:
+            if key not in import_fields:
+                del row[key]
+
     return domain_blocks
 
 def delete_block(token: str, host: str, id: int):
@@ -291,7 +308,7 @@ def add_block(token: str, host: str, blockdata: dict):
 
 def push_blocklist(token: str, host: str, blocklist: list[dict],
                     dryrun: bool=False,
-                    include_private_comments: bool=False):
+                    import_fields: list=['domain', 'severity']):
     """Push a blocklist to a remote instance.
     
     Merging the blocklist with the existing list the instance has,
@@ -300,11 +317,11 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
     @param token: The Bearer token for OAUTH API authentication
     @param host: The instance host, FQDN or IP
     @param blocklist: A list of block definitions. They must include the domain.
-    @param include_private_comments: Include private comments in merged blocklist. Defaults to False.
+    @param import_fields: A list of fields to import to the instances.
     """
     log.info(f"Pushing blocklist to host {host} ...")
     # Fetch the existing blocklist from the instance
-    serverblocks = fetch_instance_blocklist(token, host)
+    serverblocks = fetch_instance_blocklist(token, host, import_fields)
 
     # Convert serverblocks to a dictionary keyed by domain name
     knownblocks = {row['domain']: row for row in serverblocks}
@@ -314,25 +331,17 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
         log.debug(f"applying newblock: {newblock}")
         try:
             oldblock = knownblocks[newblock['domain']]
-            log.debug(f"Block already exists for {newblock['domain']}, merging data...")
+            log.debug(f"Block already exists for {newblock['domain']}, checking for differences...")
 
             # Check if anything is actually different and needs updating
             change_needed = False
-            keylist = [
-                'severity',
-                'public_comment',
-                'reject_media',
-                'reject_reports',
-                'obfuscate',
-            ]
-            if include_private_comments:
-                keylist.append('private_comment')
 
-            for key in keylist:
+            for key in import_fields:
                 try:
-                    log.debug(f"Compare {key} '{oldblock[key]}' <> '{newblock[key]}'")
                     oldval = oldblock[key]
                     newval = newblock[key]
+                    log.debug(f"Compare {key} '{oldval}' <> '{newval}'")
+
                     if oldval != newval:
                         log.debug("Difference detected. Change needed.")
                         change_needed = True
@@ -389,7 +398,7 @@ def load_config(configfile: str):
 def save_intermediate_blocklist(
     blocklist: list[dict], source: str,
     filedir: str,
-    include_private_comments: bool=False):
+    export_fields: list=['domain','severity']):
     """Save a local copy of a blocklist we've downloaded
     """
     # Invent a filename based on the remote source
@@ -399,17 +408,17 @@ def save_intermediate_blocklist(
     source = source.replace('/','-')
     filename = f"{source}.csv"
     filepath = os.path.join(filedir, filename)
-    save_blocklist_to_file(blocklist, filepath, include_private_comments)
+    save_blocklist_to_file(blocklist, filepath, export_fields)
 
 def save_blocklist_to_file(
     blocklist: list[dict],
     filepath: str,
-    include_private_comments: bool=False):
+    export_fields: list=['domain','severity']):
     """Save a blocklist we've downloaded from a remote source
 
     @param blocklist: A dictionary of block definitions, keyed by domain
     @param filepath: The path to the file the list should be saved in.
-    @param include_private_comments: Include private comments in merged blocklist. Defaults to False.
+    @param export_fields: Which fields to include in the export.
     """
     try:
         blocklist = sorted(blocklist, key=lambda x: x['domain'])
@@ -417,12 +426,10 @@ def save_blocklist_to_file(
         log.error("Field 'domain' not found in blocklist. Are you sure the URLs are correct?")
         log.debug(f"blocklist is: {blocklist}")
 
-    if include_private_comments:
-        fieldnames = ['domain', 'severity', 'private_comment', 'public_comment', 'reject_media', 'reject_reports', 'obfuscate']
-    else:
-        fieldnames = ['domain', 'severity', 'public_comment', 'reject_media', 'reject_reports', 'obfuscate']
+    log.debug(f"export fields: {export_fields}")
+
     with open(filepath, "w") as fp:
-        writer = csv.DictWriter(fp, fieldnames, extrasaction='ignore')
+        writer = csv.DictWriter(fp, export_fields, extrasaction='ignore')
         writer.writeheader()
         writer.writerows(blocklist)
 
@@ -448,8 +455,11 @@ def augment_args(args):
     if not args.savedir:
         args.savedir = conf.get('savedir', '/tmp')
 
-    if not args.include_private_comments:
-        args.include_private_comments = conf.get('include_private_comments', False)
+    if not args.export_fields:
+        args.export_fields = conf.get('export_fields', [])
+
+    if not args.import_fields:
+        args.import_fields = conf.get('import_fields', [])
 
     args.blocklist_url_sources = conf.get('blocklist_url_sources')
     args.blocklist_instance_sources = conf.get('blocklist_instance_sources')
@@ -479,10 +489,12 @@ if __name__ == '__main__':
     ap.add_argument('-D', '--savedir', dest="savedir", help="Directory path to save intermediate lists.")
     ap.add_argument('-m', '--mergeplan', choices=['min', 'max'], default='max', help="Set mergeplan.")
 
+    ap.add_argument('-I', '--import-field', dest='import_fields', action='append', help="Extra blocklist fields to import.")
+    ap.add_argument('-E', '--export-field', dest='export_fields', action='append', help="Extra blocklist fields to export.")
+
     ap.add_argument('--no-fetch-url', dest='no_fetch_url', action='store_true', help="Don't fetch from URLs, even if configured.")
     ap.add_argument('--no-fetch-instance', dest='no_fetch_instance', action='store_true', help="Don't fetch from instances, even if configured.")
     ap.add_argument('--no-push-instance', dest='no_push_instance', action='store_true', help="Don't push to instances, even if configured.")
-    ap.add_argument('--include-private-comments', dest='include_private_comments', action='store_true', help="Include private_comment field in exports and imports.")
 
     ap.add_argument('--loglevel', choices=['debug', 'info', 'warning', 'error', 'critical'], help="Set log output level.")
     ap.add_argument('--dryrun', action='store_true', help="Don't actually push updates, just show what would happen.")
