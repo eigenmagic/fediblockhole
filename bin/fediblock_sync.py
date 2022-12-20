@@ -141,7 +141,6 @@ def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dic
     # append it to the existing comment, joined with a newline
     # unless the comment is None or an empty string
     for key in ['public_comment', 'private_comment']:
-        key = 'public_comment' # convenience variable
         if oldblock[key] != newblock[key] and newblock[key] not in ['', None]:
             blockdata[key] = '\n'.join([oldblock[key], newblock[key]])
 
