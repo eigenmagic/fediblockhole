@@ -12,6 +12,18 @@ A tool for keeping a Mastodon instance blocklist synchronised with remote lists.
 
 ## Installing
 
+Installs using `pip`.
+
+Clone the repo and install from source like this:
+
+```
+python3 -m pip install .
+```
+
+Installation adds a commandline tool: `fediblock-sync`
+
+Once things stablise a bit more, I'll upload the package to PyPI.
+
 Instance admins who want to use this tool will need to add an Application at
 `https://<instance-domain>/settings/applications/` so they can authorize the
 tool to create and update domain blocks with an OAuth token. 
@@ -153,7 +165,7 @@ Once the follow count drops to 0, the tool will automatically use the highest se
 Once you've configured the tool, run it like this:
 
 ```
-fediblock_sync.py -c <configfile_path>
+fediblock-sync -c <configfile_path>
 ```
 
 If you put the config file in `/etc/default/fediblockhole.conf.toml` you don't need to pass in the config file path.
