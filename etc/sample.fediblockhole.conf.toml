@@ -17,11 +17,11 @@ blocklist_url_sources = [
 
 # List of instances to write blocklist to
 blocklist_instance_destinations = [
-  # { domain = 'eigenmagic.net', token = '<read_write_token>' },
+  # { domain = 'eigenmagic.net', token = '<read_write_token>', max_followed_severity = 'silence'},
 ]
 
 ## Store a local copy of the remote blocklists after we fetch them
-#keep_intermediate = true
+#save_intermediate = true
 
 ## Directory to store the local blocklist copies
 # savedir = '/tmp'

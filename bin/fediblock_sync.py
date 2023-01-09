@@ -108,7 +108,8 @@ def sync_blocklists(conf: dict):
         for dest in conf.blocklist_instance_destinations:
             domain = dest['domain']
             token = dest['token']
-            push_blocklist(token, domain, merged.values(), conf.dryrun, import_fields)
+            max_followed_severity = dest.get('max_followed_severity', 'silence')
+            push_blocklist(token, domain, merged.values(), conf.dryrun, import_fields, max_followed_severity)
 
 def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
     """Merge fetched remote blocklists into a bulk update
@@ -125,7 +126,7 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
             domain = newblock['domain']
             # If the domain has two asterisks in it, it's obfuscated
             # and we can't really use it, so skip it and do the next one
-            if '**' in domain:
+            if '*' in domain:
                 log.debug(f"Domain '{domain}' is obfuscated. Skipping it.")
                 continue
 
@@ -177,7 +178,7 @@ def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dic
             blockdata['severity'] = newblock['severity']
         
         # If obfuscate is set and is True for the domain in
-        # any blocklist then obfuscate is set to false.
+        # any blocklist then obfuscate is set to True.
         if newblock.get('obfuscate', False):
             blockdata['obfuscate'] = True
 
@@ -253,7 +254,7 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
             url = urlstring.strip('<').rstrip('>')
 
     log.debug(f"Found {len(domain_blocks)} existing domain blocks.")
-    # Remove fields not in import list
+    # Remove fields not in import list.
     for row in domain_blocks:
         origrow = row.copy()
         for key in origrow:
@@ -274,18 +275,98 @@ def delete_block(token: str, host: str, id: int):
     )
     if response.status_code != 200:
         if response.status_code == 404:
-            log.warn(f"No such domain block: {id}")
+            log.warning(f"No such domain block: {id}")
             return
 
         raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
+
+def fetch_instance_follows(token: str, host: str, domain: str) -> int:
+    """Fetch the followers of the target domain at the instance
+
+    @param token: the Bearer authentication token for OAuth access
+    @param host: the instance API hostname/IP address
+    @param domain: the domain to search for followers of
+    @returns: int, number of local followers of remote instance accounts
+    """
+    api_path = "/api/v1/admin/measures"
+    url = f"https://{host}{api_path}"
+
+    key = 'instance_follows'
+
+    # This data structure only allows us to request a single domain
+    # at a time, which limits the load on the remote instance of each call
+    data = {
+        'keys': [
+            key
+            ],
+        key: { 'domain': domain },
+    }
+
+    # The Mastodon API only accepts JSON formatted POST data for measures
+    response = requests.post(url,
+        headers={
+            'Authorization': f"Bearer {token}",
+        },
+        json=data,
+    )
+    if response.status_code != 200:
+        if response.status_code == 403:
+            log.error(f"Cannot fetch follow information for {domain} from {host}: {response.content}")
+
+        raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
+
+    # Get the total returned
+    follows = int(response.json()[0]['total'])
+    return follows
+
+def check_followed_severity(host: str, token: str, domain: str,
+    severity: str, max_followed_severity: str='silence'):
+    """Check an instance to see if it has followers of a to-be-blocked instance"""
+
+    # If the instance has accounts that follow people on the to-be-blocked domain,
+    # limit the maximum severity to the configured `max_followed_severity`.
+    follows = fetch_instance_follows(token, host, domain)
+    if follows > 0:
+        log.debug(f"Instance {host} has {follows} followers of accounts at {domain}.")
+        if SEVERITY[severity] > SEVERITY[max_followed_severity]:
+            log.warning(f"Instance {host} has {follows} followers of accounts at {domain}. Limiting block severity to {max_followed_severity}.")
+            return max_followed_severity
+        else:
+            return severity
+
+def is_change_needed(oldblock: dict, newblock: dict, import_fields: list):
+    """Compare block definitions to see if changes are needed"""
+    # Check if anything is actually different and needs updating
+    change_needed = []
+
+    for key in import_fields:
+        try:
+            oldval = oldblock[key]
+            newval = newblock[key]
+            log.debug(f"Compare {key} '{oldval}' <> '{newval}'")
+
+            if oldval != newval:
+                log.debug("Difference detected. Change needed.")
+                change_needed.append(key)
+                break
+
+        except KeyError:
+            log.debug(f"Key '{key}' missing from block definition so cannot compare. Continuing...")
+            continue
+    
+    return change_needed
 
 def update_known_block(token: str, host: str, blockdict: dict):
     """Update an existing domain block with information in blockdict"""
     api_path = "/api/v1/admin/domain_blocks/"
 
-    id = blockdict['id']
-    blockdata = blockdict.copy()
-    del blockdata['id']
+    try:
+        id = blockdict['id']
+        blockdata = blockdict.copy()
+        del blockdata['id']
+    except KeyError:
+        import pdb
+        pdb.set_trace()
 
     url = f"https://{host}{api_path}{id}"
 
@@ -308,12 +389,20 @@ def add_block(token: str, host: str, blockdata: dict):
         headers={'Authorization': f"Bearer {token}"},
         data=blockdata
     )
-    if response.status_code != 200:
-        raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
+    if response.status_code == 422:
+        # A stricter block already exists. Probably for the base domain.
+        err = json.loads(response.content)
+        log.warning(err['error'])
 
+    elif response.status_code != 200:
+            
+        raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
+           
 def push_blocklist(token: str, host: str, blocklist: list[dict],
                     dryrun: bool=False,
-                    import_fields: list=['domain', 'severity']):
+                    import_fields: list=['domain', 'severity'],
+                    max_followed_severity='silence',
+                    ):
     """Push a blocklist to a remote instance.
     
     Merging the blocklist with the existing list the instance has,
@@ -326,47 +415,42 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
     """
     log.info(f"Pushing blocklist to host {host} ...")
     # Fetch the existing blocklist from the instance
-    # Force use of the admin API
+    # Force use of the admin API, and add 'id' to the list of fields
+    if 'id' not in import_fields:
+        import_fields.append('id')
     serverblocks = fetch_instance_blocklist(host, token, True, import_fields)
 
-    # Convert serverblocks to a dictionary keyed by domain name
+    # # Convert serverblocks to a dictionary keyed by domain name
     knownblocks = {row['domain']: row for row in serverblocks}
 
     for newblock in blocklist:
 
-        log.debug(f"applying newblock: {newblock}")
+        log.debug(f"Applying newblock: {newblock}")
         oldblock = knownblocks.get(newblock['domain'], None)
         if oldblock:
             log.debug(f"Block already exists for {newblock['domain']}, checking for differences...")
 
-            # Check if anything is actually different and needs updating
-            change_needed = False
-
-            for key in import_fields:
-                try:
-                    oldval = oldblock[key]
-                    newval = newblock[key]
-                    log.debug(f"Compare {key} '{oldval}' <> '{newval}'")
-
-                    if oldval != newval:
-                        log.debug("Difference detected. Change needed.")
-                        change_needed = True
-                        break
-
-                except KeyError:
-                    log.debug(f"Key '{key}' missing from block definition so cannot compare. Continuing...")
-                    continue
+            change_needed = is_change_needed(oldblock, newblock, import_fields)
             
             if change_needed:
-                log.info(f"Change detected. Updating domain block for {oldblock['domain']}")
-                blockdata = oldblock.copy()
-                blockdata.update(newblock)
-                if not dryrun:
-                    update_known_block(token, host, blockdata)
-                    # add a pause here so we don't melt the instance
-                    time.sleep(1)
-                else:
-                    log.info("Dry run selected. Not applying changes.")
+                # Change might be needed, but let's see if the severity
+                # needs to change. If not, maybe no changes are needed?
+                newseverity = check_followed_severity(host, token, oldblock['domain'], newblock['severity'], max_followed_severity)
+                if newseverity != oldblock['severity']:
+                    newblock['severity'] = newseverity
+                    change_needed.append('severity')
+
+                # Change still needed?
+                if change_needed:
+                    log.info(f"Change detected. Updating domain block for {oldblock['domain']}")
+                    blockdata = oldblock.copy()
+                    blockdata.update(newblock)
+                    if not dryrun:
+                        update_known_block(token, host, blockdata)
+                        # add a pause here so we don't melt the instance
+                        time.sleep(1)
+                    else:
+                        log.info("Dry run selected. Not applying changes.")
 
             else:
                 log.debug("No differences detected. Not updating.")
@@ -385,6 +469,9 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
                 'reject_reports': newblock.get('reject_reports', False),
                 'obfuscate': newblock.get('obfuscate', False),
             }
+
+            # Make sure the new block doesn't clobber a domain with followers
+            blockdata['severity'] = check_followed_severity(host, token, newblock['domain'], max_followed_severity)
             log.info(f"Adding new block for {blockdata['domain']}...")
             if not dryrun:
                 add_block(token, host, blockdata)
