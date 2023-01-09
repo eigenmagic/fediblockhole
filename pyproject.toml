@@ -1,0 +1,38 @@
+[project]
+name = "fediblockhole"
+version = "0.2.1"
+description = "Federated blocklist management for Mastodon"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.6"
+keywords = ["mastodon", "fediblock"]
+authors = [ 
+    {name = "Justin Warren"}, {email = "justin@eigenmagic.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "requests",
+    "toml"
+]
+
+[project.urls]
+homepage = "https://github.com/eigenmagic/fediblockhole"
+documentation = "https://github.com/eigenmagic/fediblockhole"
+repository = "https://github.com/eigenmagic/fediblockhole"
+
+[project.scripts]
+fediblock-sync = "fediblockhole:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+# requires = ["flit_core >=3.4,<4"]
+# build-backend = "flit_core.buildapi"
