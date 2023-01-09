@@ -10,6 +10,9 @@ import time
 import os.path
 import urllib.request as urlr
 
+from importlib.metadata import version
+__version__ = version('fediblockhole')
+
 import logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
@@ -201,6 +204,16 @@ def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dic
 
     return blockdata
 
+def requests_headers(token: str=None):
+    """Set common headers for requests"""
+    headers = {
+        'User-Agent': f"FediBlockHole/{__version__}"
+    }
+    if token:
+        headers['Authorization'] = f"Bearer {token}"
+
+    return headers
+
 def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
     import_fields: list=['domain', 'severity']) -> list:
     """Fetch existing block list from server
@@ -218,10 +231,7 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
     else:
         api_path = "/api/v1/instance/domain_blocks"
 
-    if token:
-        headers = {'Authorization': f"Bearer {token}"}
-    else:
-        headers = {}
+    headers = requests_headers(token)
 
     url = f"https://{host}{api_path}"
 
@@ -271,7 +281,7 @@ def delete_block(token: str, host: str, id: int):
     url = f"https://{host}{api_path}{id}"
 
     response = requests.delete(url,
-        headers={'Authorization': f"Bearer {token}"}
+        headers=requests_headers(token),
     )
     if response.status_code != 200:
         if response.status_code == 404:
@@ -304,9 +314,7 @@ def fetch_instance_follows(token: str, host: str, domain: str) -> int:
 
     # The Mastodon API only accepts JSON formatted POST data for measures
     response = requests.post(url,
-        headers={
-            'Authorization': f"Bearer {token}",
-        },
+        headers=requests_headers(token),
         json=data,
     )
     if response.status_code != 200:
@@ -371,7 +379,7 @@ def update_known_block(token: str, host: str, blockdict: dict):
     url = f"https://{host}{api_path}{id}"
 
     response = requests.put(url,
-        headers={'Authorization': f"Bearer {token}"},
+        headers=requests_headers(token),
         data=blockdata
     )
     if response.status_code != 200:
@@ -386,7 +394,7 @@ def add_block(token: str, host: str, blockdata: dict):
     url = f"https://{host}{api_path}"
 
     response = requests.post(url,
-        headers={'Authorization': f"Bearer {token}"},
+        headers=requests_headers(token),
         data=blockdata
     )
     if response.status_code == 422:
