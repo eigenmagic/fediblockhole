@@ -90,8 +90,9 @@ def sync_blocklists(conf: dict):
         log.info("Fetching domain blocks from instances...")
         for blocklist_src in conf.blocklist_instance_sources:
             domain = blocklist_src['domain']
-            token = blocklist_src['token']
-            blocklists[domain] = fetch_instance_blocklist(token, domain, import_fields)
+            admin = blocklist_src.get('admin', False)
+            token = blocklist_src.get('token', None)
+            blocklists[domain] = fetch_instance_blocklist(domain, token, admin, import_fields)
             if conf.save_intermediate:
                 save_intermediate_blocklist(blocklists[domain], domain, conf.savedir, export_fields)
 
@@ -119,25 +120,22 @@ def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
     merged = {}
 
     for key, blist in blocklists.items():
-        log.debug(f"processing key {key} blist...")
+        log.debug(f"processing blocklist from: {key} ...")
         for newblock in blist:
             domain = newblock['domain']
-            if domain in merged:
+            # If the domain has two asterisks in it, it's obfuscated
+            # and we can't really use it, so skip it and do the next one
+            if '**' in domain:
+                log.debug(f"Domain '{domain}' is obfuscated. Skipping it.")
+                continue
+
+            elif domain in merged:
                 log.debug(f"Overlapping block for domain {domain}. Merging...")
                 blockdata = apply_mergeplan(merged[domain], newblock, mergeplan)
+
             else:
                 # New block
                 blockdata = newblock
-                # blockdata = {
-                #     'domain': newblock['domain'],
-                #     # Default to Silence if nothing is specified
-                #     'severity': newblock.get('severity', 'silence'),
-                #     'public_comment': newblock.get('public_comment', ''),
-                #     'obfuscate': newblock.get('obfuscate', True), # default obfuscate to True
-                # }
-                # sev = blockdata['severity'] # convenience variable
-                # blockdata['reject_media'] = newblock.get('reject_media', REJECT_MEDIA_DEFAULT[sev])
-                # blockdata['reject_reports'] = newblock.get('reject_reports', REJECT_REPORTS_DEFAULT[sev])
 
             # end if
             log.debug(f"blockdata is: {blockdata}")
@@ -161,7 +159,9 @@ def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dic
     keylist = ['public_comment', 'private_comment']
     for key in keylist:
         try:
-            if oldblock[key] != newblock[key] and newblock[key] not in ['', None]:
+            if oldblock[key] not in ['', None] and newblock[key] not in ['', None] and oldblock[key] != newblock[key]:
+                log.debug(f"old comment: '{oldblock[key]}'")
+                log.debug(f"new comment: '{newblock[key]}'")
                 blockdata[key] = ', '.join([oldblock[key], newblock[key]])
         except KeyError:
             log.debug(f"Key '{key}' missing from block definition so cannot compare. Continuing...")
@@ -197,28 +197,30 @@ def apply_mergeplan(oldblock: dict, newblock: dict, mergeplan: str='max') -> dic
         raise NotImplementedError(f"Mergeplan '{mergeplan}' not implemented.")
 
     log.debug(f"Block severity set to {blockdata['severity']}")
-    # Use the severity level to set rejections, if not defined in newblock
-    # If severity level is 'suspend', it doesn't matter what the settings is for
-    # 'reject_media' or 'reject_reports'
-    # blockdata['reject_media'] = newblock.get('reject_media', REJECT_MEDIA_DEFAULT[blockdata['severity']])
-    # blockdata['reject_reports'] = newblock.get('reject_reports', REJECT_REPORTS_DEFAULT[blockdata['severity']])
-    
-    # log.debug(f"set reject_media to: {blockdata['reject_media']}")
-    # log.debug(f"set reject_reports to: {blockdata['reject_reports']}")
 
     return blockdata
 
-def fetch_instance_blocklist(token: str, host: str,
+def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
     import_fields: list=['domain', 'severity']) -> list:
     """Fetch existing block list from server
 
-    @param token: The OAuth Bearer token to authenticate with.
     @param host: The remote host to connect to.
+    @param token: The (optional) OAuth Bearer token to authenticate with.
+    @param admin: Boolean flag to use the admin API if True.
     @param import_fields: A list of fields to import from the remote instance.
-    @returns: A list of the admin domain blocks from the instance.
+    @returns: A list of the domain blocks from the instance.
     """
     log.info(f"Fetching instance blocklist from {host} ...")
-    api_path = "/api/v1/admin/domain_blocks"
+
+    if admin:
+        api_path = "/api/v1/admin/domain_blocks"
+    else:
+        api_path = "/api/v1/instance/domain_blocks"
+
+    if token:
+        headers = {'Authorization': f"Bearer {token}"}
+    else:
+        headers = {}
 
     url = f"https://{host}{api_path}"
 
@@ -226,16 +228,19 @@ def fetch_instance_blocklist(token: str, host: str,
     link = True
 
     while link:
-        response = requests.get(url, headers={'Authorization': f"Bearer {token}"})
+        response = requests.get(url, headers=headers)
         if response.status_code != 200:
             log.error(f"Cannot fetch remote blocklist: {response.content}")
             raise ValueError("Unable to fetch domain block list: %s", response)
+
         domain_blocks.extend(json.loads(response.content))
         
         # Parse the link header to find the next url to fetch
         # This is a weird and janky way of doing pagination but
         # hey nothing we can do about it we just have to deal
-        link = response.headers['Link']
+        link = response.headers.get('Link', None)
+        if link is None:
+            break
         pagination = link.split(', ')
         if len(pagination) != 2:
             link = None
@@ -321,7 +326,8 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
     """
     log.info(f"Pushing blocklist to host {host} ...")
     # Fetch the existing blocklist from the instance
-    serverblocks = fetch_instance_blocklist(token, host, import_fields)
+    # Force use of the admin API
+    serverblocks = fetch_instance_blocklist(host, token, True, import_fields)
 
     # Convert serverblocks to a dictionary keyed by domain name
     knownblocks = {row['domain']: row for row in serverblocks}
@@ -329,8 +335,8 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
     for newblock in blocklist:
 
         log.debug(f"applying newblock: {newblock}")
-        try:
-            oldblock = knownblocks[newblock['domain']]
+        oldblock = knownblocks.get(newblock['domain'], None)
+        if oldblock:
             log.debug(f"Block already exists for {newblock['domain']}, checking for differences...")
 
             # Check if anything is actually different and needs updating
@@ -366,7 +372,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
                 log.debug("No differences detected. Not updating.")
                 pass
 
-        except KeyError:
+        else:
             # This is a new block for the target instance, so we
             # need to add a block rather than update an existing one
             blockdata = {

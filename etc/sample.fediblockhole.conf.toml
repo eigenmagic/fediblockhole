@@ -1,8 +1,12 @@
-# List of instances to read blocklists from, 
-# with the Bearer token authorised by the instance
+# List of instances to read blocklists from.
+# If the instance makes its blocklist public, no authorization token is needed.
+#   Otherwise, `token` is a Bearer token authorised to read domain_blocks.
+# If `admin` = True, use the more detailed admin API, which requires a token with a 
+#   higher level of authorization.
 blocklist_instance_sources = [
-  # { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>' },
-  # { domain = 'jorts.horse', token = '<a_different_token>' },
+  # { domain = 'public.blocklist'}, # an instance with a public list of domain_blocks
+  # { domain = 'jorts.horse', token = '<a_different_token>' }, # user accessible block list
+  # { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>', admin = true }, # admin access required
 ]
 
 # List of URLs to read csv blocklists from
