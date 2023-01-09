@@ -13,17 +13,28 @@ A tool for keeping a Mastodon instance blocklist synchronised with remote lists.
 ## Installing
 
 Instance admins who want to use this tool will need to add an Application at
-`https://<instance-domain>/settings/applications/` they can authorise with an
-OAuth token. For each instance you connect to, add this token to the config file.
+`https://<instance-domain>/settings/applications/` so they can authorize the
+tool to create and update domain blocks with an OAuth token. 
 
 ### Reading remote instance blocklists
 
-To read admin blocks from a remote instance, you'll need to ask the instance admin to add a new Application at `https://<instance-domain>/settings/applications/` and then tell you the access token.
+If a remote instance makes its domain blocks public, you don't need
+a token to read them.
 
-The application needs the `admin:read:domain_blocks` OAuth scope, but unfortunately this
-scope isn't available in the current application screen (v4.0.2 of Mastodon at
-time of writing). There is a way to do it with scopes, but it's really
-dangerous, so I'm not going to tell you what it is here.
+If a remote instance only shows its domain blocks to local accounts
+you'll need to have a token with `read:blocks` authorization set up.
+If you have an account on that instance, you can get a token by setting up a new
+Application at `https://<instance-domain>/settings/applications/`.
+
+To read admin blocks from a remote instance, you'll need to ask the instance
+admin to add a new Application at
+`https://<instance-domain>/settings/applications/` and then tell you the access
+token.
+
+The application needs the `admin:read:domain_blocks` OAuth scope, but
+unfortunately this scope isn't available in the current application screen
+(v4.0.2 of Mastodon at time of writing). There is a way to do it with scopes,
+but it's really dangerous, so I'm not going to tell you what it is here.
 
 A better way is to ask the instance admin to connect to the PostgreSQL database
 and add the scope there, like this:
@@ -68,20 +79,74 @@ Or you can use the default location of `/etc/default/fediblockhole.conf.toml`.
 
 As the filename suggests, FediBlockHole uses TOML syntax.
 
-There are 2 key sections:
+There are 3 key sections:
+ 
+ 1. `blocklist_urls_sources`: A list of URLS to read CSV formatted blocklists from
+ 1. `blocklist_instance_sources`: A list of instances to read blocklists from via API
+ 1. `blocklist_instance_destinations`: A list of instances to write blocklists to via API
 
- 1. `blocklist_instance_sources`: A list of instances to read blocklists from
- 1. `blocklist_instance_destinations`: A list of instances to write blocklists to
+### URL sources
 
-Each is a list of dictionaries of the form:
+The URL sources is a list of URLs to fetch a CSV formatted blocklist from.
+
+The required fields are `domain` and `severity`.
+
+Optional fields that the tool understands are `public_comment`, `private_comment`, `obfuscate`, `reject_media` and `reject_reports`.
+
+### Instance sources
+
+The tool can also read domain_blocks from instances directly.
+
+The configuration is a list of dictionaries of the form:
 ```
-{ domain = '<domain_name>', token = '<BearerToken>' }
+{ domain = '<domain_name>', token = '<BearerToken>', admin = false }
 ```
 
 The `domain` is the fully-qualified domain name of the API host for an instance
-you want to read or write domain blocks to/from. The `BearerToken` is the OAuth
-token for the application that's configured in the instance to allow you to
-read/write domain blocks, as discussed above.
+you want to read or write domain blocks to/from. 
+
+The `token` is an optional OAuth token for the application that's configured in
+the instance to allow you to read/write domain blocks, as discussed above.
+
+`admin` is an optional field that tells the tool to use the more detailed admin
+API endpoint for domain_blocks, rather than the more public API endpoint that
+doesn't provide as much detail. You will need a `token` that's been configured to
+permit access to the admin domain_blocks scope, as detailed above.
+
+### Instance destinations
+
+The tool supports pushing a unified blocklist to multiple instances.
+
+Configure the list of instances you want to push your blocklist to in the
+`blocklist_instance_detinations` list. Each entry is of the form:
+
+```
+{ domain = '<domain_name>', token = '<BearerToken>', max_followed_severity = 'silence' }
+```
+
+The fields `domain` and `token` are required. `max_followed_severity` is optional.
+
+The `domain` is the hostname of the instance you want to push to. The `token` is
+an application token with both `admin:read:domain_blocks` and
+`admin:write:domain_blocks` authorization.
+
+The optional `max_followed_severity` setting sets a per-instance limit on the
+severity of a domain_block if there are accounts on the instance that follow
+accounts on the domain to be blocked. If `max_followed_severity` isn't set, it
+defaults to 'silence'.
+
+This setting exists to give people time to move off an instance that is about to
+be defederated and bring their followers from your instance with them. Without
+it, if a new Suspend block appears in any of the blocklists you subscribe to (or
+a block level increases from Silence to Suspend) and you're using the default
+`max` mergeplan, the tool would immediately suspend the instance, cutting
+everyone on the blocked instance off from their existing followers on your
+instance, even if they move to a new instance. If you actually want that
+outcome, you can set `max_followed_severity = 'suspend'` and use the `max`
+mergeplan.
+
+Once the follow count drops to 0, the tool will automatically use the highest severity it finds again (if you're using the `max` mergeplan).
+
 
 ## Using the tool
 
@@ -91,14 +156,14 @@ Once you've configured the tool, run it like this:
 fediblock_sync.py -c <configfile_path>
 ```
 
-If you put the config file in `/etc/default/fediblockhole.conf.toml` you don't need to pass the config file path.
+If you put the config file in `/etc/default/fediblockhole.conf.toml` you don't need to pass in the config file path.
 
 ## More advanced configuration
 
 For a list of possible configuration options, check the `--help` and read the
 sample configuration file in `etc/sample.fediblockhole.conf.toml`.
 
-### keep_intermediate
+### save_intermediate
 
 This option tells the tool to save the unmerged blocklists it fetches from
 remote instances and URLs into separate files. This is handy for debugging, or
