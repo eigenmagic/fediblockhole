@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-# Export and import blocklists via API
+"""A tool for managing federated Mastodon blocklists
+"""
 
 import argparse
 import toml
@@ -571,7 +571,7 @@ def str2bool(boolstring: str) -> bool:
     else:
         raise ValueError(f"Cannot parse value '{boolstring}' as boolean")
 
-if __name__ == '__main__':
+def main():
 
     ap = argparse.ArgumentParser(description="Bulk blocklist tool",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
