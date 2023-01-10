@@ -8,6 +8,7 @@ import requests
 import json
 import time
 import os.path
+import sys
 import urllib.request as urlr
 
 from importlib.metadata import version
@@ -581,9 +582,12 @@ def str2bool(boolstring: str) -> bool:
 
 def main():
 
-    ap = argparse.ArgumentParser(description="Bulk blocklist tool",
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description="Bulk blocklist tool",
+        epilog=f"Part of FediBlockHole v{__version__}",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ap.add_argument('-c', '--config', default='/etc/default/fediblockhole.conf.toml', help="Config file")
+    ap.add_argument('-V', '--version', action='store_true', help="Show version and exit.")
 
     ap.add_argument('-o', '--outfile', dest="blocklist_savefile", help="Save merged blocklist to a local file.")
     ap.add_argument('-S', '--save-intermediate', dest="save_intermediate", action='store_true', help="Save intermediate blocklists we fetch to local files.")
@@ -604,6 +608,10 @@ def main():
     if args.loglevel is not None:
         levelname = args.loglevel.upper()
         log.setLevel(getattr(logging, levelname))
+
+    if args.version:
+        print(f"v{__version__}")
+        sys.exit(0)
 
     # Load the configuration file
     args = augment_args(args)
