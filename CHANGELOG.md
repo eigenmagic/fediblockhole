@@ -14,6 +14,11 @@ Important planned changes not yet bundled up will be listed here.
 
 - Added args to show version information. (1d0649a)
 - Added timeout to requests calls. (23b8833)
+- Added CHANGELOG.md (ca9d958)
+
+### Changed
+
+- Changed min Python version to v3.10. (f37ab70)
 
 ## [0.2.1] - 2023-01-10
 
