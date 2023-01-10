@@ -46,6 +46,9 @@ REJECT_REPORTS_DEFAULT = {
     'suspend': True,
 }
 
+# Wait at most this long for a remote server to respond
+REQUEST_TIMEOUT=30
+
 def sync_blocklists(conf: dict):
     """Sync instance blocklists from remote sources.
 
@@ -240,7 +243,7 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
     link = True
 
     while link:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
         if response.status_code != 200:
             log.error(f"Cannot fetch remote blocklist: {response.content}")
             raise ValueError("Unable to fetch domain block list: %s", response)
@@ -283,6 +286,7 @@ def delete_block(token: str, host: str, id: int):
 
     response = requests.delete(url,
         headers=requests_headers(token),
+        timeout=REQUEST_TIMEOUT
     )
     if response.status_code != 200:
         if response.status_code == 404:
@@ -317,6 +321,7 @@ def fetch_instance_follows(token: str, host: str, domain: str) -> int:
     response = requests.post(url,
         headers=requests_headers(token),
         json=data,
+        timeout=REQUEST_TIMEOUT
     )
     if response.status_code != 200:
         if response.status_code == 403:
@@ -381,7 +386,8 @@ def update_known_block(token: str, host: str, blockdict: dict):
 
     response = requests.put(url,
         headers=requests_headers(token),
-        data=blockdata
+        data=blockdata,
+        timeout=REQUEST_TIMEOUT
     )
     if response.status_code != 200:
         raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
@@ -396,7 +402,8 @@ def add_block(token: str, host: str, blockdata: dict):
 
     response = requests.post(url,
         headers=requests_headers(token),
-        data=blockdata
+        data=blockdata,
+        timeout=REQUEST_TIMEOUT
     )
     if response.status_code == 422:
         # A stricter block already exists. Probably for the base domain.
