@@ -231,11 +231,11 @@ def test_mergeplan_same_min_bools_true():
     assert r.obfuscate == True
 
 def test_mergeplan_max_bools():
-    a = DomainBlock('example.org', 'suspend', '', '', True, False, True)
+    a = DomainBlock('example.org', 'suspend', '', '', True, True, True)
     b = DomainBlock('example.org', 'noop', '', '', False, False, False)
 
     r = apply_mergeplan(a, b, 'max')
 
     assert r.reject_media == True
-    assert r.reject_reports == False
+    assert r.reject_reports == True
     assert r.obfuscate == True
