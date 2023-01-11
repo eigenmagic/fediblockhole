@@ -151,16 +151,13 @@ def apply_mergeplan(oldblock: DomainBlock, newblock: DomainBlock, mergeplan: str
     # Default to the existing block definition
     blockdata = oldblock._asdict()
 
-    # If the public or private comment is different,
-    # append it to the existing comment, joined with ', '
-    # unless the comment is None or an empty string
+    # Merge comments
     keylist = ['public_comment', 'private_comment']
     for key in keylist:
         try:
-            if getattr(oldblock, key) not in ['', None] and getattr(newblock, key) not in ['', None] and getattr(oldblock, key) != getattr(newblock, key):
-                log.debug(f"old comment: '{getattr(oldblock, key)}'")
-                log.debug(f"new comment: '{getattr(newblock, key)}'")
-                blockdata[key] = ', '.join([getattr(oldblock, key), getattr(newblock, key)])
+            oldcomment = getattr(oldblock, key)
+            newcomment = getattr(newblock, key)
+            blockdata[key] = merge_comments(oldcomment, newcomment)
         except KeyError:
             log.debug(f"Key '{key}' missing from block definition so cannot compare. Continuing...")
             continue
@@ -197,6 +194,50 @@ def apply_mergeplan(oldblock: DomainBlock, newblock: DomainBlock, mergeplan: str
     log.debug(f"Block severity set to {blockdata['severity']}")
 
     return DomainBlock(**blockdata)
+
+def merge_comments(oldcomment:str, newcomment:str) -> str:
+    """ Merge two comments
+
+    @param oldcomment: The original comment we're merging into
+    @param newcomment: The new commment we want to merge in
+    @returns: a new str of the merged comment
+    """
+    # Don't merge if both comments are None or ''
+    if oldcomment in ['', None] and newcomment in ['', None]:
+        return ''
+
+    # If both comments are the same, don't merge
+    if oldcomment == newcomment:
+        return oldcomment
+
+    # We want to skip duplicate fragments so we don't end up
+    # re-concatenating the same strings every time there's an
+    # update, causing the comment to grow without bound.
+    # We tokenize the comments, splitting them on ', ', and comparing
+    # the tokens, skipping duplicates.
+    # This means "boring, lack of moderation, nazis, scrapers" merging
+    # with "lack of moderation, scrapers" should result in
+    # "boring, lack of moderation, nazis, scrapers"
+    old_tokens = oldcomment.split(', ')
+    new_tokens = newcomment.split(', ')
+    
+    # Remove any empty string tokens that we get
+    while '' in old_tokens:
+        old_tokens.remove('')
+    while '' in new_tokens:
+        new_tokens.remove('')
+
+    # Remove duplicate tokens
+    for token in old_tokens:
+        if token in new_tokens:
+            new_tokens.remove(token)
+
+    # Combine whatever tokens are left into one set
+    tokenset = old_tokens
+    tokenset.extend(new_tokens)
+
+    # Return the merged string
+    return ', '.join(tokenset)
 
 def requests_headers(token: str=None):
     """Set common headers for requests"""
@@ -323,7 +364,7 @@ def check_followed_severity(host: str, token: str, domain: str,
     # Return straight away if we're not increasing the severity
     if severity <= max_followed_severity:
         return severity
-        
+
     # If the instance has accounts that follow people on the to-be-blocked domain,
     # limit the maximum severity to the configured `max_followed_severity`.
     follows = fetch_instance_follows(token, host, domain)

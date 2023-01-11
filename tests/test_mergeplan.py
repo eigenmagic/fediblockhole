@@ -2,7 +2,7 @@
 """
 
 from fediblockhole.blocklist_parser import parse_blocklist
-from fediblockhole import merge_blocklists
+from fediblockhole import merge_blocklists, merge_comments
 
 from fediblockhole.const import SeverityLevel
 
@@ -137,3 +137,65 @@ def test_merge_duplicate_comments():
     # Nope, this breaks. Need to rethink duplicate comment merge.
     # assert bl['2diff-comment.example.org'].public_comment == 'Suspend comment 1, Public duplicate'
 
+def test_merge_comments_none():
+
+    a = None
+    b = None
+
+    r = merge_comments(a, b)
+
+    assert r == ''
+
+def test_merge_comments_empty():
+
+    a = ''
+    b = ''
+
+    r = merge_comments(a, b)
+
+    assert r == ''
+
+def test_merge_comments_left():
+
+    a = 'comment to merge'
+    b = ''
+
+    r = merge_comments(a, b)
+
+    assert r == 'comment to merge'
+
+def test_merge_comments_right():
+
+    a = ''
+    b = 'comment to merge'
+
+    r = merge_comments(a, b)
+
+    assert r == 'comment to merge'
+
+def test_merge_comments_same():
+
+    a = 'comment to merge'
+    b = 'comment to merge'
+
+    r = merge_comments(a, b)
+
+    assert r == 'comment to merge'
+
+def test_merge_comments_diff():
+
+    a = 'comment A'
+    b = 'comment B'
+
+    r = merge_comments(a, b)
+
+    assert r == 'comment A, comment B'
+
+def test_merge_comments_dups():
+
+    a = "boring, nazis, lack of moderation, flagged, special"
+    b = "spoon, nazis, flagged, lack of moderation, happy, fork"
+
+    r = merge_comments(a, b)
+
+    assert r == 'boring, nazis, lack of moderation, flagged, special, spoon, happy, fork'
