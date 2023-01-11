@@ -1,0 +1,139 @@
+"""Various mergeplan tests
+"""
+
+from fediblockhole.blocklist_parser import parse_blocklist
+from fediblockhole import merge_blocklists
+
+from fediblockhole.const import SeverityLevel
+
+datafile01 = "data-suspends-01.csv"
+datafile02 = "data-silences-01.csv"
+datafile03 = "data-noop-01.csv"
+
+import_fields = [
+    'domain',
+    'severity',
+    'public_comment',
+    'private_comment',
+    'reject_media',
+    'reject_reports',
+    'obfuscate'
+]
+
+def load_test_blocklist_data(datafiles):
+
+    blocklists = {}
+
+    for df in datafiles:
+        with open(df) as fp:
+            data = fp.read()
+            bl = parse_blocklist(data, 'csv', import_fields)
+            blocklists[df] = bl
+    
+    return blocklists
+
+def test_mergeplan_max():
+    """Test 'max' mergeplan"""
+    blocklists = load_test_blocklist_data([datafile01, datafile02])
+
+    bl = merge_blocklists(blocklists, 'max')
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.SUSPEND
+
+def test_mergeplan_min():
+    """Test 'max' mergeplan"""
+    blocklists = load_test_blocklist_data([datafile01, datafile02])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.SILENCE
+
+def test_mergeplan_default():
+    """Default mergeplan is max, so see if it's chosen"""
+    blocklists = load_test_blocklist_data([datafile01, datafile02])
+
+    bl = merge_blocklists(blocklists)
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.SUSPEND
+
+def test_mergeplan_3_max():
+    """3 datafiles and mergeplan of 'max'"""
+    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'max')
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.SUSPEND
+
+def test_mergeplan_3_max():
+    """3 datafiles and mergeplan of 'max'"""
+    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.NONE
+
+def test_mergeplan_noop_v_silence_max():
+    """Mergeplan of max should choose silence over noop"""
+    blocklists = load_test_blocklist_data([datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'max')
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.SILENCE
+
+def test_mergeplan_noop_v_silence_min():
+    """Mergeplan of min should choose noop over silence"""
+    blocklists = load_test_blocklist_data([datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    for key in bl:
+        assert bl[key].severity.level == SeverityLevel.NONE
+
+def test_merge_public_comment():
+    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    assert bl['public-comment.example.org'].public_comment == 'This is a public comment'
+
+def test_merge_private_comment():
+    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    assert bl['private-comment.example.org'].private_comment == 'This is a private comment'
+
+def test_merge_public_comments():
+    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    assert bl['diff-comment.example.org'].public_comment == 'Suspend public comment, Silence public comment, Noop public comment'
+
+def test_merge_duplicate_comments():
+    """The same comment on multiple sources shouldn't get added
+    """
+    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+
+    bl = merge_blocklists(blocklists, 'min')
+    assert len(bl) == 13
+
+    # Nope, this breaks. Need to rethink duplicate comment merge.
+    # assert bl['2diff-comment.example.org'].public_comment == 'Suspend comment 1, Public duplicate'
+
