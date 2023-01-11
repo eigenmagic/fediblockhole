@@ -2,9 +2,9 @@
 """
 
 from fediblockhole.blocklist_parser import parse_blocklist
-from fediblockhole import merge_blocklists, merge_comments
+from fediblockhole import merge_blocklists, merge_comments, apply_mergeplan
 
-from fediblockhole.const import SeverityLevel
+from fediblockhole.const import SeverityLevel, DomainBlock
 
 datafile01 = "data-suspends-01.csv"
 datafile02 = "data-silences-01.csv"
@@ -71,9 +71,12 @@ def test_mergeplan_3_max():
 
     for key in bl:
         assert bl[key].severity.level == SeverityLevel.SUSPEND
+        assert bl[key].reject_media == True
+        assert bl[key].reject_reports == True
+        assert bl[key].obfuscate == True
 
-def test_mergeplan_3_max():
-    """3 datafiles and mergeplan of 'max'"""
+def test_mergeplan_3_min():
+    """3 datafiles and mergeplan of 'min'"""
     blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
 
     bl = merge_blocklists(blocklists, 'min')
@@ -81,6 +84,9 @@ def test_mergeplan_3_max():
 
     for key in bl:
         assert bl[key].severity.level == SeverityLevel.NONE
+        assert bl[key].reject_media == False
+        assert bl[key].reject_reports == False
+        assert bl[key].obfuscate == False
 
 def test_mergeplan_noop_v_silence_max():
     """Mergeplan of max should choose silence over noop"""
@@ -199,3 +205,37 @@ def test_merge_comments_dups():
     r = merge_comments(a, b)
 
     assert r == 'boring, nazis, lack of moderation, flagged, special, spoon, happy, fork'
+
+def test_mergeplan_same_min_bools_false():
+    """Test merging with mergeplan 'max' and False values doesn't change them
+    """
+    a = DomainBlock('example.org', 'noop', '', '', False, False, False)
+    b = DomainBlock('example.org', 'noop', '', '', False, False, False)
+
+    r = apply_mergeplan(a, b, 'max')
+
+    assert r.reject_media == False
+    assert r.reject_reports == False
+    assert r.obfuscate == False
+
+def test_mergeplan_same_min_bools_true():
+    """Test merging with mergeplan 'max' and True values doesn't change them
+    """
+    a = DomainBlock('example.org', 'noop', '', '', True, False, True)
+    b = DomainBlock('example.org', 'noop', '', '', True, False, True)
+
+    r = apply_mergeplan(a, b, 'max')
+
+    assert r.reject_media == True
+    assert r.reject_reports == False
+    assert r.obfuscate == True
+
+def test_mergeplan_max_bools():
+    a = DomainBlock('example.org', 'suspend', '', '', True, False, True)
+    b = DomainBlock('example.org', 'noop', '', '', False, False, False)
+
+    r = apply_mergeplan(a, b, 'max')
+
+    assert r.reject_media == True
+    assert r.reject_reports == False
+    assert r.obfuscate == True

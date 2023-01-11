@@ -171,10 +171,13 @@ def apply_mergeplan(oldblock: DomainBlock, newblock: DomainBlock, mergeplan: str
             log.debug(f"New block severity is higher. Using that.")
             blockdata['severity'] = newblock.severity
         
-        # If obfuscate is set and is True for the domain in
-        # any blocklist then obfuscate is set to True.
-        if getattr(newblock, 'obfuscate', False):
-            blockdata['obfuscate'] = True
+        # For 'reject_media', 'reject_reports', and 'obfuscate' if
+        # the value is set and is True for the domain in
+        # any blocklist then the value is set to True.
+        for key in ['reject_media', 'reject_reports', 'obfuscate']:
+            newval = getattr(newblock, key)
+            if newval == True:
+                blockdata[key] = True
 
     elif mergeplan in ['min']:
         # Use the lowest block level found
@@ -183,10 +186,13 @@ def apply_mergeplan(oldblock: DomainBlock, newblock: DomainBlock, mergeplan: str
         if newblock.severity < oldblock.severity:
             blockdata['severity'] = newblock.severity
 
-        # If obfuscate is set and is False for the domain in
-        # any blocklist then obfuscate is set to False.
-        if not getattr(newblock, 'obfuscate', True):
-            blockdata['obfuscate'] = False
+        # For 'reject_media', 'reject_reports', and 'obfuscate' if
+        # the value is set and is False for the domain in
+        # any blocklist then the value is set to False.
+        for key in ['reject_media', 'reject_reports', 'obfuscate']:
+            newval = getattr(newblock, key)
+            if newval == False:
+                blockdata[key] = False
 
     else:
         raise NotImplementedError(f"Mergeplan '{mergeplan}' not implemented.")
