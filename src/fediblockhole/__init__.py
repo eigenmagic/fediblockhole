@@ -497,7 +497,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
             # Is the severity changing?
             if 'severity' in change_needed:
                 log.debug("Severity change requested, checking...")
-                if newseverity > oldblock.severity:
+                if newblock.severity > oldblock.severity:
                     # Confirm if we really want to change the severity
                     # If we still have followers of the remote domain, we may not
                     # want to go all the way to full suspend, depending on the configuration
