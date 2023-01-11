@@ -1,0 +1,112 @@
+[
+	{
+		"id": "234",
+		"domain": "example.org",
+		"created_at": "2023-01-09T05:17:50.614Z",
+		"severity": "suspend",
+		"reject_media": true,
+		"reject_reports": true,
+		"private_comment": "A private comment",
+		"public_comment": "A public comment",
+		"obfuscate": true
+	},
+	{
+		"id": "233",
+		"domain": "example2.org",
+		"created_at": "2023-01-09T05:09:01.859Z",
+		"severity": "silence",
+		"reject_media": true,
+		"reject_reports": true,
+		"private_comment": "Another private comment",
+		"public_comment": "Another public comment",
+		"obfuscate": true
+	},
+	{
+		"id": "232",
+		"domain": "example3.org",
+		"created_at": "2023-01-09T05:08:58.833Z",
+		"severity": "suspend",
+		"reject_media": true,
+		"reject_reports": true,
+		"private_comment": "More comments? What is this?",
+		"public_comment": "Yes we love to comment",
+		"obfuscate": true
+	},
+	{
+		"id": "231",
+		"domain": "example4.org",
+		"created_at": "2023-01-09T05:04:01.856Z",
+		"severity": "noop",
+		"reject_media": true,
+		"reject_reports": true,
+		"private_comment": "I cannot believe all the comments",
+		"public_comment": "Look how many comments we can fit in here",
+		"obfuscate": true
+	},
+	{
+		"id": "230",
+		"domain": "example5.org",
+		"created_at": "2023-01-08T21:37:22.665Z",
+		"severity": "suspend",
+		"reject_media": false,
+		"reject_reports": false,
+		"private_comment": "",
+		"public_comment": "lack of moderation",
+		"obfuscate": false
+	},
+	{
+		"id": "2308",
+		"domain": "example6.org",
+		"created_at": "2023-01-06T08:36:53.989Z",
+		"severity": "suspend",
+		"reject_media": false,
+		"reject_reports": false,
+		"private_comment": "",
+		"public_comment": "anti-trans bigotry",
+		"obfuscate": false
+	},
+	{
+		"id": "2306",
+		"domain": "example7.org",
+		"created_at": "2023-01-04T08:14:05.381Z",
+		"severity": "suspend",
+		"reject_media": false,
+		"reject_reports": false,
+		"private_comment": "",
+		"public_comment": "lack of moderation",
+		"obfuscate": false
+	},
+	{
+		"id": "2305",
+		"domain": "example8.org",
+		"created_at": "2023-01-04T08:13:48.891Z",
+		"severity": "suspend",
+		"reject_media": false,
+		"reject_reports": false,
+		"private_comment": "freeze peach",
+		"public_comment": "lack of moderation, conspiracy weirdness",
+		"obfuscate": false
+	},
+	{
+		"id": "2301",
+		"domain": "example9.org",
+		"created_at": "2023-01-04T08:11:32.904Z",
+		"severity": "silence",
+		"reject_media": false,
+		"reject_reports": false,
+		"private_comment": "",
+		"public_comment": "alt-right conspiracies",
+		"obfuscate": false
+	},
+	{
+		"id": "453",
+		"domain": "example15.org",
+		"created_at": "2022-12-05T08:26:59.920Z",
+		"severity": "suspend",
+		"reject_media": true,
+		"reject_reports": true,
+		"private_comment": "cryptocurrency",
+		"public_comment": "cryptocurrency",
+		"obfuscate": true
+	}
+]

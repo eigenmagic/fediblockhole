@@ -1,0 +1,14 @@
+"domain","severity","public_comment","private_comment","reject_media","reject_reports","obfuscate"
+"public-comment.example.org","noop","This is a public comment","This is a private comment",FALSE,FALSE,FALSE
+"private-comment.example.org","noop",,"This is a private comment",FALSE,FALSE,FALSE
+"diff-comment.example.org","noop","Noop public comment","Noop private comment",FALSE,FALSE,FALSE
+"2diff-comment.example.org","noop","Public duplicate","Private duplicate",FALSE,FALSE,FALSE
+"qoto.org","noop",,,FALSE,FALSE,FALSE
+"sealion.club","noop",,,FALSE,FALSE,FALSE
+"develop.gab.com","noop",,,FALSE,FALSE,FALSE
+"gab.ai","noop",,,FALSE,FALSE,FALSE
+"gab.sleeck.eu","noop",,,FALSE,FALSE,FALSE
+"gab.com","noop",,,FALSE,FALSE,FALSE
+"kiwifarms.is","noop",,,FALSE,FALSE,FALSE
+"kiwifarms.net","noop",,,FALSE,FALSE,FALSE
+"gabfed.com","noop",,,FALSE,FALSE,FALSE

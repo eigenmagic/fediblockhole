@@ -1,0 +1,1720 @@
+{
+  "@spec": "https://rapidblock.org/spec/v1/",
+  "publishedAt": "2022-12-29T18:40:02.065805293Z",
+  "blocks": {
+    "101010.pl": {
+      "isBlocked": true,
+      "reason": "cryptomining javascript, white supremacy",
+      "tags": [
+        "antisemitism",
+        "malware",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "10minutepleroma.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "2ndamendment.social": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "activitypub-troll.cf": {
+      "isBlocked": true,
+      "reason": "denial of service bot that exploits bugs in ActivityPub software",
+      "tags": [
+        "malware"
+      ],
+      "dateRequested": "2022-12-03T00:00:00Z",
+      "dateDecided": "2022-12-03T00:00:00Z"
+    },
+    "animalliberation.social": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "anime.website": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "aria.company": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "bae.st": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "baraag.net": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "beefyboys.win": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "berserker.town": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-26T00:00:00Z",
+      "dateDecided": "2022-11-26T00:00:00Z"
+    },
+    "bikeshed.party": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "bitcoinhackers.org": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "fraud",
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "bodybuilding.im": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "boyter.org": {
+      "isBlocked": true,
+      "reason": "non-consentual content scraping",
+      "tags": [
+        "privacy"
+      ],
+      "dateRequested": "2022-12-27T00:00:00Z",
+      "dateDecided": "2022-12-27T00:00:00Z"
+    },
+    "brighteon.social": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "bsd.moe": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "carrot.army": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "catgirl.life": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "cawfee.club": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "chudbuds.lol": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "civiq.social": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "cliterati.club": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "crypto-group-buy.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "cryptotalks.social": {
+      "isBlocked": true,
+      "reason": "cryptocurrency",
+      "tags": [
+        "fraud"
+      ],
+      "dateRequested": "2022-12-16T00:00:00Z",
+      "dateDecided": "2022-12-16T00:00:00Z"
+    },
+    "cum.salon": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "d-fens.systems": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "degenerates.fail": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "detroitriotcity.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "develop.gab.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "disqordia.space": {
+      "isBlocked": true,
+      "reason": "racist harassment, spamming FediBlock hashtag with bogus reports",
+      "tags": [
+        "harassment",
+        "racism",
+        "spam"
+      ],
+      "dateRequested": "2022-12-16T00:00:00Z",
+      "dateDecided": "2022-12-16T00:00:00Z"
+    },
+    "djitter.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "durst.world": {
+      "isBlocked": true,
+      "reason": "associated with zztails.gay",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-12-23T00:00:00Z",
+      "dateDecided": "2022-12-23T00:00:00Z"
+    },
+    "eientei.org": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "eveningzoo.club": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-11T00:00:00Z",
+      "dateDecided": "2022-11-11T00:00:00Z"
+    },
+    "exited.eu": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "fedi.intkos.link": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "fedi.pawlicker.com": {
+      "isBlocked": true,
+      "reason": "🐸🥝 friendly",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "fedichive.tk": {
+      "isBlocked": true,
+      "reason": "non-consentual content scraping",
+      "tags": [
+        "privacy"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "fr13nd5.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "freeatlantis.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "freecumextremist.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "freefedifollowers.ga": {
+      "isBlocked": true,
+      "reason": "follow spam, top100",
+      "tags": [
+        "spam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "freespeech.firedragonstudios.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "freespeechextremist.com": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "freezepeach.xyz": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gab.ai": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gab.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gab.io": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gab.polaris-1.work": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gab.protohype.net": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gab.sleeck.eu": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gabble.xyz": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gabfed.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gameliberty.club": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gangstalking.services": {
+      "isBlocked": true,
+      "reason": "non-consentual content scraping, ties to ryona.agency and 🐸🥝",
+      "tags": [
+        "harassment",
+        "privacy"
+      ],
+      "dateRequested": "2022-12-28T00:00:00Z",
+      "dateDecided": "2022-12-28T00:00:00Z"
+    },
+    "gasthe.lgbt": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gearlandia.haus": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "gendercritical.club": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gendercritical.space": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "genderheretics.xyz": {
+      "isBlocked": true,
+      "reason": "transphobia",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-26T00:00:00Z",
+      "dateDecided": "2022-11-26T00:00:00Z"
+    },
+    "geofront.rocks": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-26T00:00:00Z",
+      "dateDecided": "2022-11-26T00:00:00Z"
+    },
+    "gitmo.life": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gleasonator.com": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "glindr.org": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "glowers.club": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "gorf.club": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "gs.smuglo.li": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "hentai.baby": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "home.social": {
+      "isBlocked": false,
+      "reason": "",
+      "tags": [],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "honkwerx.tech": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "humblr.social": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "hunk.city": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "husk.site": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "iddqd.social": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "jaeger.website": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "journa.host": {
+      "isBlocked": true,
+      "reason": "VC fraud, TERF",
+      "tags": [
+        "fraud",
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-08T00:00:00Z",
+      "dateDecided": "2022-11-08T00:00:00Z"
+    },
+    "kazvam.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "kiwifarms.cc": {
+      "isBlocked": true,
+      "reason": "🐸🥝",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "kiwifarms.is": {
+      "isBlocked": true,
+      "reason": "🐸🥝",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "kiwifarms.net": {
+      "isBlocked": true,
+      "reason": "🐸🥝",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "koyu.space": {
+      "isBlocked": true,
+      "reason": "targeted harassment",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-26T00:00:00Z",
+      "dateDecided": "2022-11-26T00:00:00Z"
+    },
+    "leafposter.club": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "letsalllovela.in": {
+      "isBlocked": false,
+      "reason": "",
+      "tags": [],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "liberdon.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "libertarianism.club": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "ligma.pro": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "loli.estate": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "lolis.world": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "masochi.st": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "mastinator.com": {
+      "isBlocked": true,
+      "reason": "non-consentual content scraping",
+      "tags": [
+        "privacy"
+      ],
+      "dateRequested": "2022-12-27T00:00:00Z",
+      "dateDecided": "2022-12-27T00:00:00Z"
+    },
+    "mastodon.se": {
+      "isBlocked": true,
+      "reason": "antisemitism",
+      "tags": [
+        "antisemitism",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "mastodonapp.uk": {
+      "isBlocked": true,
+      "reason": "TERF, UK-flavored racism",
+      "tags": [
+        "harassment",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "milker.cafe": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "misskey-forkbomb.cf": {
+      "isBlocked": true,
+      "reason": "denial of service bot that exploits bugs in ActivityPub software",
+      "tags": [
+        "malware"
+      ],
+      "dateRequested": "2022-12-03T00:00:00Z",
+      "dateDecided": "2022-12-03T00:00:00Z"
+    },
+    "mstdn.foxfam.club": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "mstdn.id": {
+      "isBlocked": true,
+      "reason": "targeted harassment",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-22T00:00:00Z",
+      "dateDecided": "2022-11-22T00:00:00Z"
+    },
+    "mugicha.club": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "nazi.social": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "neckbeard.xyz": {
+      "isBlocked": true,
+      "reason": "freeze peach, misogyny",
+      "tags": [
+        "harassment",
+        "misogyny"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "newjack.city": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "nicecrew.digital": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "nnia.space": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "noagendasocial.com": {
+      "isBlocked": true,
+      "reason": "racism, misogyny, transphobia",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "novoa.nagoya": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "npf.mlpol.net": {
+      "isBlocked": true,
+      "reason": "\"nazi pony fucker\"",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "pawoo.net": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "paypig.org": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "pedo.school": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "csam",
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "pieville.net": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "pl.anon-kenkai.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-24T00:00:00Z",
+      "dateDecided": "2022-11-24T00:00:00Z"
+    },
+    "pl.smuglo.li": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "pleroma.kiwifarms.net": {
+      "isBlocked": true,
+      "reason": "🐸🥝",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "pleroma.nobodyhasthe.biz": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "pleroma.rareome.ga": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "plma.plus.st": {
+      "isBlocked": true,
+      "reason": "targeted harassment, freeze peach, lots of crossover threads with KF-associated rdrama.cc",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-29T00:00:00Z",
+      "dateDecided": "2022-11-29T00:00:00Z"
+    },
+    "poa.st": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "pooper.social": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "posting.lolicon.rocks": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "csam",
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "preteengirls.biz": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "privex.social": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-13T00:00:00Z",
+      "dateDecided": "2022-11-13T00:00:00Z"
+    },
+    "qoto.org": {
+      "isBlocked": true,
+      "reason": "🐸🥝 friendly",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "rainbowdash.net": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "rakket.app": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "rapefeminists.network": {
+      "isBlocked": true,
+      "reason": "misogyny",
+      "tags": [
+        "harassment",
+        "misogyny"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "raplst.town": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment",
+        "misogyny"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "rdrama.cc": {
+      "isBlocked": true,
+      "reason": "top100, probably 🐸🥝",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "rdrama.net": {
+      "isBlocked": true,
+      "reason": "Front page looks like 🐸🥝",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-22T00:00:00Z",
+      "dateDecided": "2022-11-22T00:00:00Z"
+    },
+    "repl.co": {
+      "isBlocked": true,
+      "reason": "denial of service bot that exploits bugs in ActivityPub software",
+      "tags": [
+        "malware"
+      ],
+      "dateRequested": "2022-12-03T00:00:00Z",
+      "dateDecided": "2022-12-03T00:00:00Z"
+    },
+    "ryona.agency": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "scots.network": {
+      "isBlocked": true,
+      "reason": "queerphobia, pro hate speech policy",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-12-28T00:00:00Z",
+      "dateDecided": "2022-12-28T00:00:00Z"
+    },
+    "seal.cafe": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "sealion.club": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "search.fedi.app": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "privacy"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "shitposter.club": {
+      "isBlocked": true,
+      "reason": "freeze peach, trolls",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "shortstackran.ch": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "sinblr.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "skippers-bin.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "sleepy.cafe": {
+      "isBlocked": true,
+      "reason": "racism, misogyny, transphobia",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "smuglo.li": {
+      "isBlocked": true,
+      "reason": "loli",
+      "tags": [
+        "csam"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "sneak.berlin": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "sneed.social": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "harassment",
+        "racism"
+      ],
+      "dateRequested": "2022-11-11T00:00:00Z",
+      "dateDecided": "2022-11-11T00:00:00Z"
+    },
+    "social.076.ne.jp": {
+      "isBlocked": true,
+      "reason": "loli, freeze peach",
+      "tags": [
+        "csam",
+        "harassment"
+      ],
+      "dateRequested": "2022-11-23T00:00:00Z",
+      "dateDecided": "2022-11-23T00:00:00Z"
+    },
+    "social.au2pb.net": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "social.foxfam.club": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "social.heldscal.la": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "social.lovingexpressions.net": {
+      "isBlocked": true,
+      "reason": "racism, misogyny, transphobia",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-19T00:00:00Z",
+      "dateDecided": "2022-11-19T00:00:00Z"
+    },
+    "social.quodverum.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "socnet.supes.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "solagg.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "sperg.city": {
+      "isBlocked": true,
+      "reason": "harassment, hate speech, instance name is ableist slur with 🐸🥝 associations",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-12-23T00:00:00Z",
+      "dateDecided": "2022-12-23T00:00:00Z"
+    },
+    "spinster.xyz": {
+      "isBlocked": true,
+      "reason": "TERF",
+      "tags": [
+        "harassment",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "starnix.network": {
+      "isBlocked": true,
+      "reason": "freeze peach (considers harassment okay since harassed users can block each mosquito)",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-12-23T00:00:00Z",
+      "dateDecided": "2022-12-23T00:00:00Z"
+    },
+    "take.iteasy.club": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "tastingtraffic.net": {
+      "isBlocked": true,
+      "reason": "queerphobia",
+      "tags": [
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-07T00:00:00Z",
+      "dateDecided": "2022-11-08T00:00:00Z"
+    },
+    "tkammer.de": {
+      "isBlocked": true,
+      "reason": "misogyny, transphobia",
+      "tags": [
+        "harassment",
+        "misogyny",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-12-28T00:00:00Z",
+      "dateDecided": "2022-12-28T00:00:00Z"
+    },
+    "toot.love": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "truthsocial.co.in": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "truthsocial.com": {
+      "isBlocked": true,
+      "reason": "🐸",
+      "tags": [
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "nationalism",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "twtr.plus": {
+      "isBlocked": true,
+      "reason": "non-consentual content scraping",
+      "tags": [
+        "privacy"
+      ],
+      "dateRequested": "2022-11-13T00:00:00Z",
+      "dateDecided": "2022-11-13T00:00:00Z"
+    },
+    "unsafe.space": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "varishangout.net": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "wagesofsinisdeath.com": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment",
+        "misogyny",
+        "queerphobia"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "weedis.life": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "wrongthink.net": {
+      "isBlocked": true,
+      "reason": "freeze peach",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-16T00:00:00Z",
+      "dateDecided": "2022-11-16T00:00:00Z"
+    },
+    "yggdrasil.social": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "youjo.love": {
+      "isBlocked": true,
+      "reason": "top100",
+      "tags": [
+        "harassment"
+      ],
+      "dateRequested": "2022-11-21T00:00:00Z",
+      "dateDecided": "2022-11-21T00:00:00Z"
+    },
+    "zztails.gay": {
+      "isBlocked": true,
+      "reason": "targeted harassment (wishing death on people), slurs of all kinds",
+      "tags": [
+        "ableism",
+        "antisemitism",
+        "harassment",
+        "misogyny",
+        "queerphobia",
+        "racism"
+      ],
+      "dateRequested": "2022-12-23T00:00:00Z",
+      "dateDecided": "2022-12-23T00:00:00Z"
+    }
+  }
+}
