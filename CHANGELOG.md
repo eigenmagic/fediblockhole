@@ -8,6 +8,41 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 Important planned changes not yet bundled up will be listed here.
 
+## [0.4.0] - 2023-01-12
+
+Substantial changes to better support multiple blocklist formats
+
+### Added
+
+- Added support for RapidBlock blocklists, both CSV and JSON formats. (327a44d)
+- Added support for per-instance-source import_fields. (327a44d)
+- Updated sample config to include new formats. (327a44d)
+- A BlockSeverity of 'suspend' implies reject_media and reject_reports. (327a44d)
+- Added ability to limit max severity per-URL source. (10011a5)
+- Added boolean fields like 'reject_reports' to mergeplan handling. (66f0373)
+- Added tests for boolean merge situations. (66f0373)
+- Various other test cases added.
+
+### Changed
+
+- Refactored to add a DomainBlock object. (10011a5)
+- Refactored to use a BlockParser structure. (10011a5)
+- Improved method for checking if changes are needed. (10011a5)
+- Refactored fetch from URLs and instances. (327a44d)
+- Improved check_followed_severity() behaviour. (327a44d)
+- Changed API delay to be in calls per hour. (327a44d)
+- Improved comment merging. (0a6eec4)
+- Clarified logic in apply_mergeplan() for boolean fields. (66f0373)
+- Updated README documentation. (ee9625d)
+
+### Removed
+
+- Removed redundant global vars. (327a44d)
+
+### Fixed
+
+- Fixed bug in severity change detection. (e0d40b5)
+
 ## [0.3.0] - 2023-01-11
 
 ### Added
