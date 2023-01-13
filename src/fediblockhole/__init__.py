@@ -29,7 +29,8 @@ URL_BLOCKLIST_MAXSIZE = 1024 ** 3
 REQUEST_TIMEOUT = 30
 
 # Time to wait between instance API calls to we don't melt them
-API_CALL_DELAY = 3600 / 300 # 300 API calls per hour
+# The default Mastodon rate limit is 300 calls per 5 minutes
+API_CALL_DELAY = 5 * 60 / 300 # 300 calls per 5 minutes
 
 # We always import the domain and the severity
 IMPORT_FIELDS = ['domain', 'severity']
