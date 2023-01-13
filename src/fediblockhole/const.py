@@ -127,13 +127,15 @@ class DomainBlock(object):
         """Initialize the DomainBlock
         """        
         self.domain = domain
+        # Set severity first so if reject_media or reject_reports = False
+        # that overrides the default of True for severity = 'suspend'
+        self.severity = severity
         self.public_comment = public_comment
         self.private_comment = private_comment
         self.reject_media = reject_media
         self.reject_reports = reject_reports
         self.obfuscate = obfuscate
         self.id = id
-        self.severity = severity
 
     @property
     def severity(self):
@@ -147,6 +149,7 @@ class DomainBlock(object):
             self._severity = BlockSeverity(sev)
 
         # Suspend implies reject_media,reject_reports == True
+        log.debug('Suspend blocks media and reports')
         if self._severity.level == SeverityLevel.SUSPEND:
             self.reject_media = True
             self.reject_reports = True
