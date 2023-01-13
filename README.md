@@ -96,21 +96,37 @@ UPDATE oauth_access_tokens
 When that's done, FediBlockHole should be able to use its token to read domain
 blocks via the API.
 
+Alternately, you could ask the remote instance admin to set up FediBlockHole and
+use it to dump out a CSV blocklist from their instance and then put it somewhere
+trusted parties can read it. Then you can define the blocklist as a URL source,
+as explained below.
+
 ### Writing instance blocklists
 
-To write domain blocks into an instance requires both the
-`admin:read:domain_blocks` and `admin:write:domain_blocks` OAuth scopes. The
-`read` scope is used to read the current list of domain blocks so we update ones
-that already exist, rather than trying to add all new ones and clutter up the
-instance.
+To write domain blocks into an instance requires both the `admin:read` and
+`admin:write:domain_blocks` OAuth scopes. The `read` scope is used to read the
+current list of domain blocks so we update ones that already exist, rather than
+trying to add all new ones and clutter up the instance. It's also used to check
+if the instance has any accounts that follow accounts on a domain that is about
+to get `suspend`ed and automatically drop the block severity to `silence` level
+so people have time to migrate accounts before a full defederation takes effect.
 
-Again, there's no way to do this (yet) on the application admin
-screen so we need to ask our destination admins to update the application
-permissions similar to reading domain blocks:
+You can add `admin:read` scope in the application admin screen. Please be aware
+that this grants full read access to all information in the instance to the
+application token, so make sure you keep it a secret. At least remove
+world-readable permission to any config file you put it in, e.g.:
+
+```
+chmod o-r <configfile>
+```
+
+You can also grant full `admin:write` scope to the application, but if you'd
+prefer to keep things more tightly secured you'll need to use SQL to set the
+scopes in the database:
 
 ```
 UPDATE oauth_access_tokens
-    SET scopes='admin:read:domain_blocks admin:write:domain_blocks'
+    SET scopes='admin:read admin:write:domain_blocks'
     WHERE token='<your_app_token>';
 ```
 
