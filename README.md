@@ -2,19 +2,55 @@
 
 A tool for keeping a Mastodon instance blocklist synchronised with remote lists.
 
+The broad design goal for FediBlockHole is to support pulling in a list of
+blocklists from a set of trusted sources, merge them into a combined blocklist,
+and then push that merged list to a set of managed instances.
+
+Inspired by the way PiHole works for maintaining a set of blocklists of adtech
+domains.
+
+Mastodon admins can choose who they think maintain quality lists and subscribe
+to them, helping to distribute the load for maintaining blocklists among a
+community of people. Control ultimately rests with the admins themselves so they
+can outsource as much, or as little, of the effort to others as they deem
+appropriate.
+
 ## Features
 
+### Blocklist Sources
+
+ - Read domain block lists from other instances via the Mastodon API.
+ - Supports both public lists (no auth required) and 'admin' lists requiring
+   authentication to an instance.
+ - Read domain block lists from arbitrary URLs, including local files.
+ - Supports CSV and JSON format blocklists
+ - Supports RapidBlock CSV and JSON format blocklists
+
+### Blocklist Export/Push
+
+ - Push a merged blocklist to a set of Mastodon instances.
+ - Export per-source, unmerged block lists to local files, in CSV format.
+ - Export merged blocklists to local files, in CSV format.
  - Read block lists from multiple remote instances
  - Read block lists from multiple URLs, including local files
  - Write a unified block list to a local CSV file
  - Push unified blocklist updates to multiple remote instances
  - Control import and export fields
 
+### Flexible Configuration
+
+ - Provides (hopefully) sensible defaults to minimise first-time setup.
+ - Global and fine-grained configuration options available for those complex situations that crop up sometimes.
+
 ## Installing
 
-Installs using `pip`.
+Installable using `pip`.
 
-Clone the repo and install from source like this:
+```
+python3 -m pip install fediblockhole
+```
+
+Install from source by cloning the repo, `cd fediblockhole` and run:
 
 ```
 python3 -m pip install .
@@ -22,11 +58,11 @@ python3 -m pip install .
 
 Installation adds a commandline tool: `fediblock-sync`
 
-Once things stablise a bit more, I'll upload the package to PyPI.
+Instance admins who want to use this tool for their instance will need to add an
+Application at `https://<instance-domain>/settings/applications/` so they can
+authorize the tool to create and update domain blocks with an OAuth token.
 
-Instance admins who want to use this tool will need to add an Application at
-`https://<instance-domain>/settings/applications/` so they can authorize the
-tool to create and update domain blocks with an OAuth token. 
+More on authorization by token below.
 
 ### Reading remote instance blocklists
 
@@ -57,8 +93,8 @@ UPDATE oauth_access_tokens
     WHERE token='<your_app_token>';
 ```
 
-When that's done, FediBlockHole should be able to use its token to authorise
-adding or updating domain blocks via the API.
+When that's done, FediBlockHole should be able to use its token to read domain
+blocks via the API.
 
 ### Writing instance blocklists
 
@@ -81,6 +117,22 @@ UPDATE oauth_access_tokens
 When that's done, FediBlockHole should be able to use its token to authorise
 adding or updating domain blocks via the API.
 
+## Using the tool
+
+Run the tool like this:
+
+```
+fediblock-sync -c <configfile_path>
+```
+
+If you put the config file in `/etc/default/fediblockhole.conf.toml` you don't
+need to pass in the config file path.
+
+For a list of possible configuration options, check the `--help`.
+
+You can also read the heavily commented sample configuration file in the repo at
+[etc/sample.fediblockhole.conf.toml](https://github.com/eigenmagic/fediblockhole/blob/main/etc/sample.fediblockhole.conf.toml).
+
 ## Configuring
 
 Once you have your applications and tokens and scopes set up, create a
@@ -93,17 +145,63 @@ As the filename suggests, FediBlockHole uses TOML syntax.
 
 There are 3 key sections:
  
- 1. `blocklist_urls_sources`: A list of URLS to read CSV formatted blocklists from
- 1. `blocklist_instance_sources`: A list of instances to read blocklists from via API
- 1. `blocklist_instance_destinations`: A list of instances to write blocklists to via API
+ 1. `blocklist_urls_sources`: A list of URLs to read blocklists from
+ 1. `blocklist_instance_sources`: A list of Mastodon instances to read blocklists from via API
+ 1. `blocklist_instance_destinations`: A list of Mastodon instances to write blocklists to via API
+
+More detail on configuring the tool is provided below.
 
 ### URL sources
 
-The URL sources is a list of URLs to fetch a CSV formatted blocklist from.
+The URL sources is a list of URLs to fetch blocklists from.
 
-The required fields are `domain` and `severity`.
+Supported formats are currently:
 
-Optional fields that the tool understands are `public_comment`, `private_comment`, `obfuscate`, `reject_media` and `reject_reports`.
+ - Comma-Separated Values (CSV)
+ - JSON
+ - RapidBlock CSV
+ - RapidBlock JSON
+
+Blocklists must provide a `domain` field, and should provide a `severity` field.
+
+`domain` is the domain name of the instance to be blocked/limited.
+
+`severity` is the severity level of the block/limit. Supported values are: `noop`, `silence`, and `suspend`.
+
+Optional fields that the tool understands are `public_comment`, `private_comment`, `reject_media`, `reject_reports`, and `obfuscate`.
+
+#### CSV format
+
+A CSV format blocklist must contain a header row with at least a `domain` and `severity` field.
+
+Optional fields, as listed about, may also be included.
+
+#### JSON format
+
+JSON is also supported. It uses the same format as the JSON returned from the Mastodon API.
+
+This is a list of dictionaries, with at minimum a `domain` field, and preferably
+a `severity` field. The other optional fields are, well, optional.
+
+#### RapidBlock CSV format
+
+The RapidBlock CSV format has no header and a single field, so it's not
+_strictly_ a CSV file as there are no commas separating values. It is basically
+just a list of domains to block, separated by '\r\n'.
+
+When using this format, the tool assumes the `severity` level is `suspend`.
+
+#### RapidBlock JSON format
+
+The RapidBlock JSON format provides more detailed information about domain
+blocks, but is still somewhat limited.
+
+It has a single `isBlocked` flag indicating if a domain should be blocked or
+not. There is no support for the 'silence' block level.
+
+There is no support for 'reject_media' or 'reject_reports' or 'obfuscate'.
+
+All comments are public, by virtue of the public nature of RapidBlock.
 
 ### Instance sources
 
@@ -115,10 +213,10 @@ The configuration is a list of dictionaries of the form:
 ```
 
 The `domain` is the fully-qualified domain name of the API host for an instance
-you want to read or write domain blocks to/from. 
+you want to read domain blocks from. 
 
 The `token` is an optional OAuth token for the application that's configured in
-the instance to allow you to read/write domain blocks, as discussed above.
+the instance to allow you to read domain blocks, as discussed above.
 
 `admin` is an optional field that tells the tool to use the more detailed admin
 API endpoint for domain_blocks, rather than the more public API endpoint that
@@ -133,42 +231,44 @@ Configure the list of instances you want to push your blocklist to in the
 `blocklist_instance_detinations` list. Each entry is of the form:
 
 ```
-{ domain = '<domain_name>', token = '<BearerToken>', max_followed_severity = 'silence' }
+{ domain = '<domain_name>', token = '<BearerToken>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
 ```
 
-The fields `domain` and `token` are required. `max_followed_severity` is optional.
+The fields `domain` and `token` are required. 
+
+The fields `max_followed_severity` and `import_fields` are optional.
 
 The `domain` is the hostname of the instance you want to push to. The `token` is
 an application token with both `admin:read:domain_blocks` and
 `admin:write:domain_blocks` authorization.
 
+The optional `import_fields` setting allows you to restrict which fields are
+imported from each instance. If you want to import the `reject_reports` settings
+from one instance, but no others, you can use the `import_fields` setting to do
+it. **Note:** The `domain` and `severity` fields are always imported.
+
+The optional `max_severity` setting limits the maximum severity you will allow a
+remote blocklist to set. This helps you import a list from a remote instance but
+only at the `silence` level, even if that remote instance has a block at
+`suspend` level. If not set, defaults to `suspend`.
+
 The optional `max_followed_severity` setting sets a per-instance limit on the
 severity of a domain_block if there are accounts on the instance that follow
 accounts on the domain to be blocked. If `max_followed_severity` isn't set, it
-defaults to 'silence'.
+defaults to `silence`.
 
 This setting exists to give people time to move off an instance that is about to
 be defederated and bring their followers from your instance with them. Without
-it, if a new Suspend block appears in any of the blocklists you subscribe to (or
-a block level increases from Silence to Suspend) and you're using the default
+it, if a new `suspend` block appears in any of the blocklists you subscribe to (or
+a block level increases from `silence` to `suspend`) and you're using the default
 `max` mergeplan, the tool would immediately suspend the instance, cutting
 everyone on the blocked instance off from their existing followers on your
 instance, even if they move to a new instance. If you actually want that
 outcome, you can set `max_followed_severity = 'suspend'` and use the `max`
 mergeplan.
 
-Once the follow count drops to 0, the tool will automatically use the highest severity it finds again (if you're using the `max` mergeplan).
-
-
-## Using the tool
-
-Once you've configured the tool, run it like this:
-
-```
-fediblock-sync -c <configfile_path>
-```
-
-If you put the config file in `/etc/default/fediblockhole.conf.toml` you don't need to pass in the config file path.
+Once the follow count drops to 0 on your instance, the tool will automatically
+use the highest severity it finds again (if you're using the `max` mergeplan).
 
 ## More advanced configuration
 

@@ -29,7 +29,8 @@ URL_BLOCKLIST_MAXSIZE = 1024 ** 3
 REQUEST_TIMEOUT = 30
 
 # Time to wait between instance API calls to we don't melt them
-API_CALL_DELAY = 3600 / 300 # 300 API calls per hour
+# The default Mastodon rate limit is 300 calls per 5 minutes
+API_CALL_DELAY = 5 * 60 / 300 # 300 calls per 5 minutes
 
 # We always import the domain and the severity
 IMPORT_FIELDS = ['domain', 'severity']
@@ -416,13 +417,13 @@ def is_change_needed(oldblock: dict, newblock: dict, import_fields: list):
     change_needed = oldblock.compare_fields(newblock, import_fields)
     return change_needed
 
-def update_known_block(token: str, host: str, blockdict: dict):
+def update_known_block(token: str, host: str, block: DomainBlock):
     """Update an existing domain block with information in blockdict"""
     api_path = "/api/v1/admin/domain_blocks/"
 
     try:
-        id = blockdict['id']
-        blockdata = blockdict.copy()
+        id = block.id
+        blockdata = block._asdict()
         del blockdata['id']
     except KeyError:
         import pdb

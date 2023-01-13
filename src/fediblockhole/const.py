@@ -215,7 +215,7 @@ class DomainBlock(object):
         """Be iterable"""
         keys = self.fields
 
-        if self.id:
+        if getattr(self, 'id', False):
             keys.append('id')
 
         for k in keys:
