@@ -97,9 +97,10 @@ class BlocklistParserCSV(BlocklistParser):
         origitem = blockitem.copy()
         for key in origitem:
             if key not in self.import_fields:
+                log.debug(f"ignoring field '{key}'")
                 del blockitem[key]
 
-        # Convert dict to NamedTuple with the double-star operator
+        # Convert dict to DomainBlock with the double-star operator
         # See: https://docs.python.org/3/tutorial/controlflow.html#tut-unpacking-arguments
         block = DomainBlock(**blockitem)
         if block.severity > self.max_severity:
@@ -162,7 +163,7 @@ def str2bool(boolstring: str) -> bool:
     boolstring = boolstring.lower()
     if boolstring in ['true', 't', '1', 'y', 'yes']:
         return True
-    elif boolstring in ['false', 'f', '0', 'n', 'no']:
+    elif boolstring in ['', 'false', 'f', '0', 'n', 'no']:
         return False
     else:
         raise ValueError(f"Cannot parse value '{boolstring}' as boolean")
@@ -183,4 +184,5 @@ def parse_blocklist(
     """Parse a blocklist in the given format
     """
     parser = FORMAT_PARSERS[format](import_fields, max_severity)
+    log.debug(f"parsing {format} blocklist with import_fields: {import_fields}...")
     return parser.parse_blocklist(blockdata)
