@@ -417,13 +417,13 @@ def is_change_needed(oldblock: dict, newblock: dict, import_fields: list):
     change_needed = oldblock.compare_fields(newblock, import_fields)
     return change_needed
 
-def update_known_block(token: str, host: str, blockdict: dict):
+def update_known_block(token: str, host: str, block: DomainBlock):
     """Update an existing domain block with information in blockdict"""
     api_path = "/api/v1/admin/domain_blocks/"
 
     try:
-        id = blockdict['id']
-        blockdata = blockdict.copy()
+        id = block.id
+        blockdata = block._asdict()
         del blockdata['id']
     except KeyError:
         import pdb
