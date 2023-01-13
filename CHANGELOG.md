@@ -8,7 +8,7 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 Important planned changes not yet bundled up will be listed here.
 
-## [0.4.0] - 2023-01-12
+## [0.4.0] - 2023-01-13
 
 Substantial changes to better support multiple blocklist formats
 
@@ -34,6 +34,7 @@ Substantial changes to better support multiple blocklist formats
 - Improved comment merging. (0a6eec4)
 - Clarified logic in apply_mergeplan() for boolean fields. (66f0373)
 - Updated README documentation. (ee9625d)
+- Aligned API call rate limit with server default. (55dad3f)
 
 ### Removed
 
@@ -42,6 +43,8 @@ Substantial changes to better support multiple blocklist formats
 ### Fixed
 
 - Fixed bug in severity change detection. (e0d40b5)
+- Fix DomainBlock.id usage during __iter__() (a718af5)
+- 
 
 ## [0.3.0] - 2023-01-11
 
