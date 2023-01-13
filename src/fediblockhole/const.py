@@ -156,7 +156,7 @@ class DomainBlock(object):
         """
         dictval = {
             'domain': self.domain,
-            'severity': self.severity,
+            'severity': str(self.severity),
             'public_comment': self.public_comment,
             'private_comment': self.private_comment,
             'reject_media': self.reject_media,
