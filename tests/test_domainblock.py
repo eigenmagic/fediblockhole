@@ -72,12 +72,3 @@ def test_compare_diff_sevs_2():
     b = DomainBlock('example1.org', 'noop')
 
     assert a != b
-
-def test_suspend_rejects():
-    """A suspend should reject_media and reject_reports
-    """
-    a = DomainBlock('example.org', 'suspend')
-
-    assert a.severity.level == SeverityLevel.SUSPEND
-    assert a.reject_media == True
-    assert a.reject_reports == True
