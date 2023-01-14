@@ -126,6 +126,8 @@ def fetch_from_instances(blocklists: dict, sources: dict,
         domain = item['domain']
         admin = item.get('admin', False)
         token = item.get('token', None)
+        itemsrc = f"https://{domain}/api"
+
         # If import fields are provided, they override the global ones passed in
         source_import_fields = item.get('import_fields', None)
         if source_import_fields:
@@ -133,9 +135,9 @@ def fetch_from_instances(blocklists: dict, sources: dict,
             import_fields = IMPORT_FIELDS.extend(source_import_fields)
 
         # Add the blocklist with the domain as the source key
-        blocklists[domain] = fetch_instance_blocklist(domain, token, admin, import_fields)
+        blocklists[itemsrc] = fetch_instance_blocklist(domain, token, admin, import_fields)
         if save_intermediate:
-            save_intermediate_blocklist(blocklists[domain], domain, savedir, export_fields)
+            save_intermediate_blocklist(blocklists[itemsrc], domain, savedir, export_fields)
     return blocklists
 
 def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
@@ -587,9 +589,16 @@ def save_blocklist_to_file(
         for item in blocklist:
             writer.writerow(item._asdict())
 
-def augment_args(args):
-    """Augment commandline arguments with config file parameters"""
-    conf = toml.load(args.config)
+def augment_args(args, tomldata: str=None):
+    """Augment commandline arguments with config file parameters
+    
+    If tomldata is provided, uses that data instead of loading
+    from a config file.
+    """
+    if tomldata:
+        conf = toml.loads(tomldata)
+    else:
+        conf = toml.load(args.config)
 
     if not args.no_fetch_url:
         args.no_fetch_url = conf.get('no_fetch_url', False)
@@ -615,14 +624,18 @@ def augment_args(args):
     if not args.import_fields:
         args.import_fields = conf.get('import_fields', [])
 
-    args.blocklist_url_sources = conf.get('blocklist_url_sources')
-    args.blocklist_instance_sources = conf.get('blocklist_instance_sources')
-    args.blocklist_instance_destinations = conf.get('blocklist_instance_destinations')
+    if not args.mergeplan:
+        args.mergeplan = conf.get('mergeplan', 'max')
+
+    args.blocklist_url_sources = conf.get('blocklist_url_sources', [])
+    args.blocklist_instance_sources = conf.get('blocklist_instance_sources', [])
+    args.blocklist_instance_destinations = conf.get('blocklist_instance_destinations', [])
 
     return args
 
-def main():
-
+def setup_argparse():
+    """Setup the commandline arguments
+    """
     ap = argparse.ArgumentParser(
         description="Bulk blocklist tool",
         epilog=f"Part of FediBlockHole v{__version__}",
@@ -633,7 +646,7 @@ def main():
     ap.add_argument('-o', '--outfile', dest="blocklist_savefile", help="Save merged blocklist to a local file.")
     ap.add_argument('-S', '--save-intermediate', dest="save_intermediate", action='store_true', help="Save intermediate blocklists we fetch to local files.")
     ap.add_argument('-D', '--savedir', dest="savedir", help="Directory path to save intermediate lists.")
-    ap.add_argument('-m', '--mergeplan', choices=['min', 'max'], default='max', help="Set mergeplan.")
+    ap.add_argument('-m', '--mergeplan', choices=['min', 'max'], help="Set mergeplan.")
 
     ap.add_argument('-I', '--import-field', dest='import_fields', action='append', help="Extra blocklist fields to import.")
     ap.add_argument('-E', '--export-field', dest='export_fields', action='append', help="Extra blocklist fields to export.")
@@ -645,7 +658,13 @@ def main():
     ap.add_argument('--loglevel', choices=['debug', 'info', 'warning', 'error', 'critical'], help="Set log output level.")
     ap.add_argument('--dryrun', action='store_true', help="Don't actually push updates, just show what would happen.")
 
+    return ap
+
+def main():
+
+    ap = setup_argparse()
     args = ap.parse_args()
+
     if args.loglevel is not None:
         levelname = args.loglevel.upper()
         log.setLevel(getattr(logging, levelname))
