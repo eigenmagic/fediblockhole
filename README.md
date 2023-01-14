@@ -159,11 +159,12 @@ Or you can use the default location of `/etc/default/fediblockhole.conf.toml`.
 
 As the filename suggests, FediBlockHole uses TOML syntax.
 
-There are 3 key sections:
+There are 4 key sections:
  
  1. `blocklist_urls_sources`: A list of URLs to read blocklists from
  1. `blocklist_instance_sources`: A list of Mastodon instances to read blocklists from via API
  1. `blocklist_instance_destinations`: A list of Mastodon instances to write blocklists to via API
+ 1. `allowlist_url_sources`: A list of URLs to read allowlists from
 
 More detail on configuring the tool is provided below.
 
@@ -285,6 +286,25 @@ mergeplan.
 
 Once the follow count drops to 0 on your instance, the tool will automatically
 use the highest severity it finds again (if you're using the `max` mergeplan).
+
+### Allowlists
+
+Sometimes you might want to override the blocklist definitions and always allow
+certain domains to access your instance. That's what allowlists are for.
+
+Allowlists can be any in format supported by `blocklist_urls_sources` but will
+always set the severity to 'noop'.
+
+An allowlist can contain just the `domain` field and a set of domains, but can
+also contain other fields if you want to add public or private comments, for
+example.
+
+You can also allow domains on the commandline by using the `-A` or `--allow`
+flag and providing the domain name to allow. You can use the flag multiple
+times to allow multiple domains.
+
+The allowed domains will be included in the final merged list of domains that
+gets exported if you choose to save the mergelist to a file.
 
 ## More advanced configuration
 
