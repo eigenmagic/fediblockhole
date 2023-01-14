@@ -85,6 +85,9 @@ def sync_blocklists(conf: dict):
         for key, alist in allowlists.items():
             log.debug(f"Processing allows from '{key}'...")
             for allowed in alist:
+                # Ensure the severity is always 'noop'
+                # This is to prevent accidentally blocking something you wanted to allow.
+                allowed.severity = 'noop'
                 merged[allowed.domain] = allowed
                 log.debug(f"Allowed domain '{allowed.domain}' from allowlist: {allowed}")
 
