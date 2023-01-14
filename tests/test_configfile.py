@@ -45,3 +45,14 @@ def test_set_mergeplan_min():
 
     assert args.mergeplan == 'min'
 
+def test_set_allowlists():
+    tomldata = """# Comment on config
+allowlist_url_sources = [ { url='file:///path/to/allowlist', format='csv'} ] 
+"""
+    args = shim_argparse([], tomldata)
+
+    assert args.mergeplan == 'max'
+    assert args.allowlist_url_sources == [{
+        'url': 'file:///path/to/allowlist',
+        'format': 'csv',
+        }]

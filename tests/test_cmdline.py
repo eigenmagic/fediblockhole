@@ -38,3 +38,17 @@ def test_cmdline_mergeplan_min():
     args = ap.parse_args(['-m', 'min'])
 
     assert args.mergeplan == 'min'
+
+def test_set_allow_domain():
+    """Set a single allow domain on commandline"""
+    ap = setup_argparse()
+    args = ap.parse_args(['-A', 'example.org'])
+
+    assert args.allow_domains == ['example.org']
+
+def test_set_multiple_allow_domains():
+    """Set multiple allow domains on commandline"""
+    ap = setup_argparse()
+    args = ap.parse_args(['-A', 'example.org', '-A', 'example2.org', '-A', 'example3.org'])
+
+    assert args.allow_domains == ['example.org', 'example2.org', 'example3.org']
