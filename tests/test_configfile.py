@@ -1,14 +1,7 @@
 """Test the config file is loading parameters correctly
 """
+from util import shim_argparse
 from fediblockhole import setup_argparse, augment_args
-
-def shim_argparse(testargv: list=[], tomldata: str=None):
-    """Helper function to parse test args
-    """
-    ap = setup_argparse()
-    args = ap.parse_args(testargv)
-    args = augment_args(args, tomldata)
-    return args
 
 def test_parse_tomldata():
     tomldata = """
