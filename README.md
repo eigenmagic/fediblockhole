@@ -289,22 +289,21 @@ use the highest severity it finds again (if you're using the `max` mergeplan).
 
 ### Allowlists
 
-Sometimes you might want to override the blocklist definitions and always allow
-certain domains to access your instance. That's what allowlists are for.
+Sometimes you might want to completely ignore the blocklist definitions for
+certain domains. That's what allowlists are for.
 
-Allowlists can be any in format supported by `blocklist_urls_sources` but will
-always set the severity to 'noop'.
+Allowlists remove any domain in the list from the merged list of blocks before
+the merged list is saved out to a file or pushed to any instance.
 
-An allowlist can contain just the `domain` field and a set of domains, but can
-also contain other fields if you want to add public or private comments, for
-example.
+Allowlists can be in any format supported by `blocklist_urls_sources` but ignore
+all fields that aren't `domain`.
 
 You can also allow domains on the commandline by using the `-A` or `--allow`
 flag and providing the domain name to allow. You can use the flag multiple
 times to allow multiple domains.
 
-The allowed domains will be included in the final merged list of domains that
-gets exported if you choose to save the mergelist to a file.
+It is probably wise to include your own instance domain in an allowlist so you
+don't accidentally defederate from yourself.
 
 ## More advanced configuration
 
