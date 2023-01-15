@@ -16,7 +16,7 @@ blocklist_instance_sources = [
 # max_severity tells the parser to override any severities that are higher than this value
 # import_fields tells the parser to only import that set of fields from a specific source
 blocklist_url_sources = [
-  # { url = 'file:///home/daedalus/src/fediblockhole/samples/demo-blocklist-01.csv', format = 'csv' },
+  # { url = 'file:///path/to/fediblockhole/samples/demo-blocklist-01.csv', format = 'csv' },
   { url = 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-blocklist-01.csv', format = 'csv' },
 
 ]

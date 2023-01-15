@@ -35,10 +35,13 @@ API_CALL_DELAY = 5 * 60 / 300 # 300 calls per 5 minutes
 # We always import the domain and the severity
 IMPORT_FIELDS = ['domain', 'severity']
 
+# Allowlists always import these fields
+ALLOWLIST_IMPORT_FIELDS = ['domain', 'severity', 'public_comment', 'private_comment', 'reject_media', 'reject_reports', 'obfuscate']
+
 # We always export the domain and the severity
 EXPORT_FIELDS = ['domain', 'severity']
 
-def sync_blocklists(conf: dict):
+def sync_blocklists(conf: argparse.Namespace):
     """Sync instance blocklists from remote sources.
 
     @param conf: A configuration dictionary
@@ -69,6 +72,12 @@ def sync_blocklists(conf: dict):
 
     # Merge blocklists into an update dict
     merged = merge_blocklists(blocklists, conf.mergeplan)
+
+    # Remove items listed in allowlists, if any
+    allowlists = fetch_allowlists(conf)
+    merged = apply_allowlists(merged, conf, allowlists)
+
+    # Save the final mergelist, if requested
     if conf.blocklist_savefile:
         log.info(f"Saving merged blocklist to {conf.blocklist_savefile}")
         save_blocklist_to_file(merged.values(), conf.blocklist_savefile, export_fields)
@@ -81,6 +90,35 @@ def sync_blocklists(conf: dict):
             token = dest['token']
             max_followed_severity = BlockSeverity(dest.get('max_followed_severity', 'silence'))
             push_blocklist(token, domain, merged.values(), conf.dryrun, import_fields, max_followed_severity)
+
+def apply_allowlists(merged: dict, conf: argparse.Namespace, allowlists: dict):
+    """Apply allowlists
+    """
+    # Apply allows specified on the commandline
+    for domain in conf.allow_domains:
+        log.info(f"'{domain}' allowed by commandline, removing any blocks...")
+        if domain in merged:
+            del merged[domain]
+
+    # Apply allows from URLs lists
+    log.info("Removing domains from URL allowlists...")
+    for key, alist in allowlists.items():
+        log.debug(f"Processing allows from '{key}'...")
+        for allowed in alist:
+            domain = allowed.domain
+            log.debug(f"Removing allowlisted domain '{domain}' from merged list.")
+            if domain in merged:
+                del merged[domain]
+
+    return merged
+
+def fetch_allowlists(conf: argparse.Namespace) -> dict:
+    """
+    """
+    if conf.allowlist_url_sources:
+        allowlists = fetch_from_urls({}, conf.allowlist_url_sources, ALLOWLIST_IMPORT_FIELDS)
+        return allowlists
+    return {}
 
 def fetch_from_urls(blocklists: dict, url_sources: dict,
     import_fields: list=IMPORT_FIELDS,
@@ -142,9 +180,12 @@ def fetch_from_instances(blocklists: dict, sources: dict,
 
 def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
     """Merge fetched remote blocklists into a bulk update
+    @param blocklists: A dict of lists of DomainBlocks, keyed by source.
+        Each value is a list of DomainBlocks
     @param mergeplan: An optional method of merging overlapping block definitions
         'max' (the default) uses the highest severity block found
         'min' uses the lowest severity block found
+    @param returns: A dict of DomainBlocks keyed by domain
     """
     merged = {}
 
@@ -435,7 +476,7 @@ def update_known_block(token: str, host: str, block: DomainBlock):
 
     response = requests.put(url,
         headers=requests_headers(token),
-        data=blockdata,
+        json=blockdata._asdict(),
         timeout=REQUEST_TIMEOUT
     )
     if response.status_code != 200:
@@ -444,14 +485,14 @@ def update_known_block(token: str, host: str, block: DomainBlock):
 def add_block(token: str, host: str, blockdata: DomainBlock):
     """Block a domain on Mastodon host
     """
-    log.debug(f"Blocking domain {blockdata.domain} at {host}...")
+    log.debug(f"Adding block entry for {blockdata.domain} at {host}...")
     api_path = "/api/v1/admin/domain_blocks"
 
     url = f"https://{host}{api_path}"
 
     response = requests.post(url,
         headers=requests_headers(token),
-        data=blockdata._asdict(),
+        json=blockdata._asdict(),
         timeout=REQUEST_TIMEOUT
     )
     if response.status_code == 422:
@@ -517,6 +558,8 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
                 log.info(f"Pushing new block definition: {newblock}")
                 blockdata = oldblock.copy()
                 blockdata.update(newblock)
+                log.debug(f"Block as dict: {blockdata._asdict()}")
+
                 if not dryrun:
                     update_known_block(token, host, blockdata)
                     # add a pause here so we don't melt the instance
@@ -532,6 +575,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
             # This is a new block for the target instance, so we
             # need to add a block rather than update an existing one
             log.info(f"Adding new block: {newblock}...")
+            log.debug(f"Block as dict: {newblock._asdict()}")
 
             # Make sure the new block doesn't clobber a domain with followers
             newblock.severity = check_followed_severity(host, token, newblock.domain, newblock.severity, max_followed_severity)
@@ -629,6 +673,7 @@ def augment_args(args, tomldata: str=None):
 
     args.blocklist_url_sources = conf.get('blocklist_url_sources', [])
     args.blocklist_instance_sources = conf.get('blocklist_instance_sources', [])
+    args.allowlist_url_sources = conf.get('allowlist_url_sources', [])
     args.blocklist_instance_destinations = conf.get('blocklist_instance_destinations', [])
 
     return args
@@ -650,6 +695,7 @@ def setup_argparse():
 
     ap.add_argument('-I', '--import-field', dest='import_fields', action='append', help="Extra blocklist fields to import.")
     ap.add_argument('-E', '--export-field', dest='export_fields', action='append', help="Extra blocklist fields to export.")
+    ap.add_argument('-A', '--allow', dest="allow_domains", action='append', default=[], help="Override any blocks to allow this domain.")
 
     ap.add_argument('--no-fetch-url', dest='no_fetch_url', action='store_true', help="Don't fetch from URLs, even if configured.")
     ap.add_argument('--no-fetch-instance', dest='no_fetch_instance', action='store_true', help="Don't fetch from instances, even if configured.")

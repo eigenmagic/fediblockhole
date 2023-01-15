@@ -1,14 +1,7 @@
 """Test the commandline defined parameters correctly
 """
+from util import shim_argparse
 from fediblockhole import setup_argparse, augment_args
-
-def shim_argparse(testargv: list=[], tomldata: str=None):
-    """Helper function to parse test args
-    """
-    ap = setup_argparse()
-    args = ap.parse_args(testargv)
-    args = augment_args(args, tomldata)
-    return args
 
 def test_cmdline_no_configfile():
     """ Test bare command with no configfile
@@ -38,3 +31,17 @@ def test_cmdline_mergeplan_min():
     args = ap.parse_args(['-m', 'min'])
 
     assert args.mergeplan == 'min'
+
+def test_set_allow_domain():
+    """Set a single allow domain on commandline"""
+    ap = setup_argparse()
+    args = ap.parse_args(['-A', 'example.org'])
+
+    assert args.allow_domains == ['example.org']
+
+def test_set_multiple_allow_domains():
+    """Set multiple allow domains on commandline"""
+    ap = setup_argparse()
+    args = ap.parse_args(['-A', 'example.org', '-A', 'example2.org', '-A', 'example3.org'])
+
+    assert args.allow_domains == ['example.org', 'example2.org', 'example3.org']
