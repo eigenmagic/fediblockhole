@@ -13,7 +13,7 @@ def test_cmdline_allow_removes_domain():
 
     merged = {
         'example.org': DomainBlock('example.org'),
-        'example2.org': DomainBlock('example.org'),
+        'example2.org': DomainBlock('example2.org'),
         'removeme.org': DomainBlock('removeme.org'),
         'keepblockingme.org': DomainBlock('keepblockingme.org'),
     }
@@ -34,7 +34,7 @@ def test_allowlist_removes_domain():
 
     merged = {
         'example.org': DomainBlock('example.org'),
-        'example2.org': DomainBlock('example.org'),
+        'example2.org': DomainBlock('example2.org'),
         'removeme.org': DomainBlock('removeme.org'),
         'keepblockingme.org': DomainBlock('keepblockingme.org'),
     }
@@ -47,3 +47,30 @@ def test_allowlist_removes_domain():
 
     with pytest.raises(KeyError):
         merged['removeme.org']
+
+def test_allowlist_removes_tld():
+    """Test that an item in an allowlist removes entries from merged
+    """
+    conf = shim_argparse()
+
+    merged = {
+        '.cf': DomainBlock('.cf'),
+        'example.org': DomainBlock('example.org'),
+        '.tk': DomainBlock('.tk'),
+        'keepblockingme.org': DomainBlock('keepblockingme.org'),
+    }
+
+    allowlists = {
+        'list1': [
+            DomainBlock('.cf', 'noop'), 
+            DomainBlock('.tk', 'noop'), 
+        ]
+    }
+    
+    merged = apply_allowlists(merged, conf, allowlists)
+
+    with pytest.raises(KeyError):
+        merged['.cf']
+
+    with pytest.raises(KeyError):
+        merged['.tk']

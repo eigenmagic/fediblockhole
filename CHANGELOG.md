@@ -8,6 +8,42 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 Important planned changes not yet bundled up will be listed here.
 
+## [0.4.1] - 2023-01-15
+
+Allowlist support.
+
+### Added
+
+- Allowlists just remove blocks from merged list before push. (a25773f)
+- Added helper submodule for testing utils (bf48a96)
+- Added basic tests of allowlist config args. (a3d3571)
+- Added test cases for cmdline parsing. (11accf3)
+- Added test cases for configfile parsing. (11accf3)
+- Added documentation on allowlists. (26f5464)
+- Fixed bug in how DomainBlock defaults handle reject_media, reject_reports. (6d4e18b)
+- Added support for allowlists. Updated docstring for merge_blocklists() (7a31c33)
+- Added DomainBlock type hint to update_known_block(). (69c28f1)
+- Use ._asdict() to get info to pass to add block API call. (69c28f1)
+
+### Changed
+
+- Updated README to explain allowlist mechanism. (dc4bbd7)
+- Edited sample config to better explain URL source (9bd7914)
+- Restructured argparsing for easier testing. (11accf3)
+- str2bool() now converts '' to False. Added some extra debug logging of blocklist parsing. (894b133)
+- Updated documentation to explain need for `admin:read` access to fetch followers stats. (2cec9e1)
+- Aligned API call rate limit with server default. (55dad3f)
+
+### Removed
+
+- Remove implied setting of reject_media/reports if severity is set to 'suspend'. (3aa2e37)
+
+### Fixed
+
+- Fixed bug: mergeplan in config file was ignored. Reported in #22 (11accf3)
+- Fixed bug in _asdict() of severity level. (9817c99)
+- Fix DomainBlock.id usage during __iter__() (a718af5)
+
 ## [0.4.0] - 2023-01-13
 
 Substantial changes to better support multiple blocklist formats
@@ -85,6 +121,8 @@ Substantial changes to better support multiple blocklist formats
 [semantic versioning]: https://semver.org/spec/v2.0.0.html
 
 <!-- Versions -->
-[unreleased]: https://github.com/eigenmagic/fediblockhole/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.2.1
+[unreleased]: https://github.com/eigenmagic/fediblockhole/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.1
+[0.4.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.0
+[0.3.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.3.0
 [0.2.1]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.2.1
