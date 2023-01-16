@@ -5,7 +5,7 @@ FROM python:slim-bullseye
 # Copy local code to the container image.
 ENV APP_HOME /app
 WORKDIR $APP_HOME
-COPY . ./
+COPY ./ ./
 
 # Install production dependencies.
 RUN pip install .
