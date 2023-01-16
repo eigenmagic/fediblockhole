@@ -127,13 +127,13 @@ class DomainBlock(object):
         """Initialize the DomainBlock
         """        
         self.domain = domain
+        self.severity = severity
         self.public_comment = public_comment
         self.private_comment = private_comment
         self.reject_media = reject_media
         self.reject_reports = reject_reports
         self.obfuscate = obfuscate
         self.id = id
-        self.severity = severity
 
     @property
     def severity(self):
@@ -146,17 +146,12 @@ class DomainBlock(object):
         else:
             self._severity = BlockSeverity(sev)
 
-        # Suspend implies reject_media,reject_reports == True
-        if self._severity.level == SeverityLevel.SUSPEND:
-            self.reject_media = True
-            self.reject_reports = True
-
     def _asdict(self):
         """Return a dict version of this object
         """
         dictval = {
             'domain': self.domain,
-            'severity': self.severity,
+            'severity': str(self.severity),
             'public_comment': self.public_comment,
             'private_comment': self.private_comment,
             'reject_media': self.reject_media,

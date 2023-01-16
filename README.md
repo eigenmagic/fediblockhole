@@ -81,20 +81,28 @@ token.
 
 The application needs the `admin:read:domain_blocks` OAuth scope, but
 unfortunately this scope isn't available in the current application screen
-(v4.0.2 of Mastodon at time of writing). There is a way to do it with scopes,
-but it's really dangerous, so I'm not going to tell you what it is here.
+(v4.0.2 of Mastodon at time of writing, but this has been fixed in the main
+branch). 
 
-A better way is to ask the instance admin to connect to the PostgreSQL database
-and add the scope there, like this:
+You can allow full `admin:read` access, but be aware that this authorizes
+someone to read all the data in the instance. That's asking a lot of a remote
+instance admin who just wants to share domain_blocks with you.
+
+For now, you can ask the instance admin to update the scope in the database
+directly like this:
 
 ```
-UPDATE oauth_access_tokens
-    SET scopes='admin:read:domain_blocks'
-    WHERE token='<your_app_token>';
+UPDATE oauth_applications as app
+  SET scopes = 'admin:read:domain_blocks'
+  FROM oauth_access_tokens as tok
+  WHERE app.id = tok.application_id
+  AND app.name = '<the_app_name>'
+;
 ```
 
-When that's done, FediBlockHole should be able to use its token to read domain
-blocks via the API.
+When that's done, regenerate the token (so it has the new scopes) in the
+application screen in the instance GUI. FediBlockHole should then able to use
+the app token to read domain blocks via the API, but nothing else.
 
 Alternately, you could ask the remote instance admin to set up FediBlockHole and
 use it to dump out a CSV blocklist from their instance and then put it somewhere
@@ -104,12 +112,17 @@ as explained below.
 ### Writing instance blocklists
 
 To write domain blocks into an instance requires both the `admin:read` and
-`admin:write:domain_blocks` OAuth scopes. The `read` scope is used to read the
-current list of domain blocks so we update ones that already exist, rather than
-trying to add all new ones and clutter up the instance. It's also used to check
-if the instance has any accounts that follow accounts on a domain that is about
-to get `suspend`ed and automatically drop the block severity to `silence` level
-so people have time to migrate accounts before a full defederation takes effect.
+`admin:write:domain_blocks` OAuth scopes.
+
+The tool needs `admin:read:domain_blocks` scope to read the current list of
+domain blocks so we update ones that already exist, rather than trying to add
+all new ones and clutter up the instance.
+
+`admin:read` access is needed to check if the instance has any accounts that
+follow accounts on a domain that is about to get `suspend`ed and automatically
+drop the block severity to `silence` level so people have time to migrate
+accounts before a full defederation takes effect. Unfortunately, the statistics
+measure used to learn this information requires `admin:read` scope.
 
 You can add `admin:read` scope in the application admin screen. Please be aware
 that this grants full read access to all information in the instance to the
@@ -122,12 +135,15 @@ chmod o-r <configfile>
 
 You can also grant full `admin:write` scope to the application, but if you'd
 prefer to keep things more tightly secured you'll need to use SQL to set the
-scopes in the database:
+scopes in the database and then regenerate the token:
 
 ```
-UPDATE oauth_access_tokens
-    SET scopes='admin:read admin:write:domain_blocks'
-    WHERE token='<your_app_token>';
+UPDATE oauth_applications as app
+  SET scopes = 'admin:read admin:write:domain_blocks'
+  FROM oauth_access_tokens as tok
+  WHERE app.id = tok.application_id
+  AND app.name = '<the_app_name>'
+;
 ```
 
 When that's done, FediBlockHole should be able to use its token to authorise
@@ -159,11 +175,12 @@ Or you can use the default location of `/etc/default/fediblockhole.conf.toml`.
 
 As the filename suggests, FediBlockHole uses TOML syntax.
 
-There are 3 key sections:
+There are 4 key sections:
  
  1. `blocklist_urls_sources`: A list of URLs to read blocklists from
  1. `blocklist_instance_sources`: A list of Mastodon instances to read blocklists from via API
  1. `blocklist_instance_destinations`: A list of Mastodon instances to write blocklists to via API
+ 1. `allowlist_url_sources`: A list of URLs to read allowlists from
 
 More detail on configuring the tool is provided below.
 
@@ -285,6 +302,24 @@ mergeplan.
 
 Once the follow count drops to 0 on your instance, the tool will automatically
 use the highest severity it finds again (if you're using the `max` mergeplan).
+
+### Allowlists
+
+Sometimes you might want to completely ignore the blocklist definitions for
+certain domains. That's what allowlists are for.
+
+Allowlists remove any domain in the list from the merged list of blocks before
+the merged list is saved out to a file or pushed to any instance.
+
+Allowlists can be in any format supported by `blocklist_urls_sources` but ignore
+all fields that aren't `domain`.
+
+You can also allow domains on the commandline by using the `-A` or `--allow`
+flag and providing the domain name to allow. You can use the flag multiple
+times to allow multiple domains.
+
+It is probably wise to include your own instance domain in an allowlist so you
+don't accidentally defederate from yourself.
 
 ## More advanced configuration
 
