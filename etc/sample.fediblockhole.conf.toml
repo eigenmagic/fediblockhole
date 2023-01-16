@@ -21,6 +21,13 @@ blocklist_url_sources = [
 
 ]
 
+## These global allowlists override blocks from blocklists
+# These are the same format and structure as blocklists, but they take precedence
+allowlist_url_sources = [
+  { url = 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-01.csv', format = 'csv' },
+  { url = 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-02.csv', format = 'csv' },
+]
+
 # List of instances to write blocklist to
 blocklist_instance_destinations = [
   # { domain = 'eigenmagic.net', token = '<read_write_token>', max_followed_severity = 'silence'},
