@@ -11,7 +11,7 @@ import os.path
 import sys
 import urllib.request as urlr
 
-from .blocklist_parser import parse_blocklist
+from .blocklists import Blocklist, parse_blocklist
 from .const import DomainBlock, BlockSeverity
 
 from importlib.metadata import version
@@ -178,40 +178,70 @@ def fetch_from_instances(blocklists: dict, sources: dict,
             save_intermediate_blocklist(blocklists[itemsrc], domain, savedir, export_fields)
     return blocklists
 
-def merge_blocklists(blocklists: dict, mergeplan: str='max') -> dict:
+def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max', threshold: int=0) -> dict:
     """Merge fetched remote blocklists into a bulk update
     @param blocklists: A dict of lists of DomainBlocks, keyed by source.
         Each value is a list of DomainBlocks
     @param mergeplan: An optional method of merging overlapping block definitions
         'max' (the default) uses the highest severity block found
         'min' uses the lowest severity block found
+    @param threshold: An integer percentage [0-100].
+        If a domain is not present in this pct or more of the blocklists,
+        it will not get merged into the final list.
     @param returns: A dict of DomainBlocks keyed by domain
     """
     merged = {}
 
-    for key, blist in blocklists.items():
-        log.debug(f"processing blocklist from: {key} ...")
-        for newblock in blist:
-            domain = newblock.domain
-            # If the domain has two asterisks in it, it's obfuscated
-            # and we can't really use it, so skip it and do the next one
-            if '*' in domain:
+    num_blocklists = len(blocklists)
+
+    # Create a domain keyed list of blocks for each domain
+    domain_blocks = {}
+
+    for bl in blocklists:
+        for block in bl.values():
+            if '*' in block.domain:
                 log.debug(f"Domain '{domain}' is obfuscated. Skipping it.")
                 continue
-
-            elif domain in merged:
-                log.debug(f"Overlapping block for domain {domain}. Merging...")
-                blockdata = apply_mergeplan(merged[domain], newblock, mergeplan)
-
+            elif block.domain in domain_blocks:
+                domain_blocks[block.domain].append(block)
             else:
-                # New block
-                blockdata = newblock
+                domain_blocks[block.domain] = [block,]
 
-            # end if
-            log.debug(f"blockdata is: {blockdata}")
-            merged[domain] = blockdata
-        # end for
+    # Only merge items if there are more than `threshold` pct of them
+    for domain in domain_blocks:
+        pct = len(domain_blocks[domain]) / num_blocklists
+        if pct >= threshold:
+            # Add first block in the list to merged
+            merged[domain] = domain_blocks[domain][0]
+            # Merge the others with this record
+            for block in domain_blocks[domain][1:]:
+                merged[domain] = apply_mergeplan(merged[domain], block, mergeplan)
+    
     return merged
+
+    # for key, blist in blocklists.items():
+    #     log.debug(f"processing blocklist from: {key} ...")
+    #     for newblock in blist:
+    #         domain = newblock.domain
+    #         # If the domain has two asterisks in it, it's obfuscated
+    #         # and we can't really use it, so skip it and do the next one
+    #         if '*' in domain:
+    #             log.debug(f"Domain '{domain}' is obfuscated. Skipping it.")
+    #             continue
+
+    #         elif domain in merged:
+    #             log.debug(f"Overlapping block for domain {domain}. Merging...")
+    #             blockdata = apply_mergeplan(merged[domain], newblock, mergeplan)
+
+    #         else:
+    #             # New block
+    #             blockdata = newblock
+
+    #         # end if
+    #         log.debug(f"blockdata is: {blockdata}")
+    #         merged[domain] = blockdata
+    #     # end for
+    # return merged
 
 def apply_mergeplan(oldblock: DomainBlock, newblock: DomainBlock, mergeplan: str='max') -> dict:
     """Use a mergeplan to decide how to merge two overlapping block definitions

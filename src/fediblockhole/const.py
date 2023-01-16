@@ -123,7 +123,8 @@ class DomainBlock(object):
             reject_media: bool=False,
             reject_reports: bool=False,
             obfuscate: bool=False,
-            id: int=None):
+            id: int=None,
+            count: int=0):
         """Initialize the DomainBlock
         """        
         self.domain = domain
@@ -134,6 +135,7 @@ class DomainBlock(object):
         self.reject_reports = reject_reports
         self.obfuscate = obfuscate
         self.id = id
+        self.count = 0
 
     @property
     def severity(self):

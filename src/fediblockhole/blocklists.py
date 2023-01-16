@@ -1,13 +1,41 @@
 """Parse various blocklist data formats
 """
-from typing import Iterable
-from .const import DomainBlock, BlockSeverity
-
 import csv
 import json
+from typing import Iterable
+from dataclasses import dataclass, field
+
+from .const import DomainBlock, BlockSeverity
 
 import logging
 log = logging.getLogger('fediblockhole')
+
+@dataclass
+class Blocklist:
+    """ A Blocklist object
+
+    A Blocklist is a list of DomainBlocks from an origin
+    """
+    origin: str = None
+    blocks: dict[str, DomainBlock] = field(default_factory=dict)
+
+    def __len__(self):
+        return len(self.blocks)
+
+    def __class_getitem__(cls, item):
+        return dict[str, DomainBlock]
+
+    def __getitem__(self, item):
+        return self.blocks[item]
+
+    def __iter__(self):
+        return self.blocks.__iter__()
+
+    def items(self):
+        return self.blocks.items()
+
+    def values(self):
+        return self.blocks.values()
 
 class BlocklistParser(object):
     """
@@ -30,7 +58,7 @@ class BlocklistParser(object):
         """
         raise NotImplementedError
 
-    def parse_blocklist(self, blockdata) -> dict[DomainBlock]:
+    def parse_blocklist(self, blockdata, origin:str=None) -> Blocklist:
         """Parse an iterable of blocklist items
         @param blocklist: An Iterable of blocklist items
         @returns: A dict of DomainBlocks, keyed by domain
@@ -38,9 +66,10 @@ class BlocklistParser(object):
         if self.preparse:
             blockdata = self.preparse(blockdata)
 
-        parsed_list = []
+        parsed_list = Blocklist(origin)
         for blockitem in blockdata:
-            parsed_list.append(self.parse_item(blockitem))
+            block = self.parse_item(blockitem)
+            parsed_list.blocks[block.domain] = block
         return parsed_list
     
     def parse_item(self, blockitem) -> DomainBlock:
@@ -178,6 +207,7 @@ FORMAT_PARSERS = {
 # helper function to select the appropriate Parser
 def parse_blocklist(
     blockdata,
+    origin,
     format="csv",
     import_fields: list=['domain', 'severity'],
     max_severity: str='suspend'):
@@ -185,4 +215,4 @@ def parse_blocklist(
     """
     parser = FORMAT_PARSERS[format](import_fields, max_severity)
     log.debug(f"parsing {format} blocklist with import_fields: {import_fields}...")
-    return parser.parse_blocklist(blockdata)
+    return parser.parse_blocklist(blockdata, origin)
