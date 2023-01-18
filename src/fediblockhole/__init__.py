@@ -476,7 +476,7 @@ def update_known_block(token: str, host: str, block: DomainBlock):
 
     response = requests.put(url,
         headers=requests_headers(token),
-        json=blockdata._asdict(),
+        json=blockdata,
         timeout=REQUEST_TIMEOUT
     )
     if response.status_code != 200:
