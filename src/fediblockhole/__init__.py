@@ -180,16 +180,23 @@ def fetch_from_instances(blocklists: dict, sources: dict,
             save_intermediate_blocklist(blocklists[itemsrc], domain, savedir, export_fields)
     return blocklists
 
-def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max', threshold: int=0) -> dict:
+def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max',
+    threshold: int=0,
+    threshold_type: str='count') -> dict:
     """Merge fetched remote blocklists into a bulk update
     @param blocklists: A dict of lists of DomainBlocks, keyed by source.
         Each value is a list of DomainBlocks
     @param mergeplan: An optional method of merging overlapping block definitions
         'max' (the default) uses the highest severity block found
         'min' uses the lowest severity block found
-    @param threshold: An integer percentage [0-100].
-        If a domain is not present in this pct or more of the blocklists,
+    @param threshold: An integer used in the threshold mechanism.
+        If a domain is not present in this number/pct or more of the blocklists,
         it will not get merged into the final list.
+    @param threshold_type: choice of ['count', 'pct']
+        If `count`, threshold is met if block is present in `threshold`
+        or more blocklists.
+        If `pct`, theshold is met if block is present in
+        count_of_mentions / number_of_blocklists.
     @param returns: A dict of DomainBlocks keyed by domain
     """
     merged = {}
@@ -209,10 +216,16 @@ def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max', threshol
             else:
                 domain_blocks[block.domain] = [block,]
 
-    # Only merge items if there are more than `threshold` pct of them
+    # Only merge items if `threshold` is met or exceeded
     for domain in domain_blocks:
-        pct = len(domain_blocks[domain]) / num_blocklists
-        if pct >= threshold:
+        if threshold_type == 'count':
+            domain_threshold_level = len(domain_blocks[domain])
+        elif threshold_type == 'pct':
+            domain_threshold_level = len(domain_blocks[domain]) / num_blocklists
+        else:
+            raise ValueError(f"Unsupported threshold type '{threshold_type}'. Supported values are: 'count', 'pct'")
+            
+        if domain_threshold_level >= threshold:
             # Add first block in the list to merged
             merged[domain] = domain_blocks[domain][0]
             # Merge the others with this record
