@@ -10,9 +10,14 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [v0.4.2] - 2023-01-19
 
+### Added
+
+- Added ability to set scheme when talking to instances. (9fe9342)
+
 ### Fixed
 
 - Blockdata var already converted to _asdict() (8d3b9da)
+- Mastodon public API parser type required because #33
 
 ## [v0.4.1] - 2023-01-15
 
