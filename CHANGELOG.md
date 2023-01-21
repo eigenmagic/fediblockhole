@@ -6,9 +6,15 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [Unreleased]
 
-Important planned changes not yet bundled up will be listed here.
+- Planning to add allowlist thresholds as noted in #28
 
-## [0.4.1] - 2023-01-15
+## [v0.4.2] - 2023-01-19
+
+### Fixed
+
+- Blockdata var already converted to _asdict() (8d3b9da)
+
+## [v0.4.1] - 2023-01-15
 
 Allowlist support.
 
@@ -44,7 +50,7 @@ Allowlist support.
 - Fixed bug in _asdict() of severity level. (9817c99)
 - Fix DomainBlock.id usage during __iter__() (a718af5)
 
-## [0.4.0] - 2023-01-13
+## [v0.4.0] - 2023-01-13
 
 Substantial changes to better support multiple blocklist formats
 
@@ -80,9 +86,8 @@ Substantial changes to better support multiple blocklist formats
 
 - Fixed bug in severity change detection. (e0d40b5)
 - Fix DomainBlock.id usage during __iter__() (a718af5)
-- 
 
-## [0.3.0] - 2023-01-11
+## [v0.3.0] - 2023-01-11
 
 ### Added
 
@@ -94,7 +99,7 @@ Substantial changes to better support multiple blocklist formats
 
 - Changed min Python version to v3.10. (f37ab70)
 
-## [0.2.1] - 2023-01-10
+## [v0.2.1] - 2023-01-10
 
 ### Added
 
@@ -121,8 +126,9 @@ Substantial changes to better support multiple blocklist formats
 [semantic versioning]: https://semver.org/spec/v2.0.0.html
 
 <!-- Versions -->
-[unreleased]: https://github.com/eigenmagic/fediblockhole/compare/v0.4.1...HEAD
-[0.4.1]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.1
-[0.4.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.0
-[0.3.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.3.0
-[0.2.1]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.2.1
+[unreleased]: https://github.com/eigenmagic/fediblockhole/compare/v0.4.2...HEAD
+[v0.4.2]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.2
+[v0.4.1]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.1
+[v0.4.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.4.0
+[v0.3.0]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.3.0
+[v0.2.1]: https://github.com/eigenmagic/fediblockhole/releases/tag/v0.2.1

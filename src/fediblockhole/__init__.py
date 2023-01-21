@@ -88,8 +88,9 @@ def sync_blocklists(conf: argparse.Namespace):
         for dest in conf.blocklist_instance_destinations:
             domain = dest['domain']
             token = dest['token']
+            scheme = dest.get('scheme', 'https')
             max_followed_severity = BlockSeverity(dest.get('max_followed_severity', 'silence'))
-            push_blocklist(token, domain, merged.values(), conf.dryrun, import_fields, max_followed_severity)
+            push_blocklist(token, domain, merged.values(), conf.dryrun, import_fields, max_followed_severity, scheme)
 
 def apply_allowlists(merged: dict, conf: argparse.Namespace, allowlists: dict):
     """Apply allowlists
@@ -164,7 +165,8 @@ def fetch_from_instances(blocklists: dict, sources: dict,
         domain = item['domain']
         admin = item.get('admin', False)
         token = item.get('token', None)
-        itemsrc = f"https://{domain}/api"
+        scheme = item.get('scheme', 'https')
+        itemsrc = f"{scheme}://{domain}/api"
 
         # If import fields are provided, they override the global ones passed in
         source_import_fields = item.get('import_fields', None)
@@ -173,7 +175,7 @@ def fetch_from_instances(blocklists: dict, sources: dict,
             import_fields = IMPORT_FIELDS.extend(source_import_fields)
 
         # Add the blocklist with the domain as the source key
-        blocklists[itemsrc] = fetch_instance_blocklist(domain, token, admin, import_fields)
+        blocklists[itemsrc] = fetch_instance_blocklist(domain, token, admin, import_fields, scheme)
         if save_intermediate:
             save_intermediate_blocklist(blocklists[itemsrc], domain, savedir, export_fields)
     return blocklists
@@ -328,7 +330,8 @@ def requests_headers(token: str=None):
     return headers
 
 def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
-    import_fields: list=['domain', 'severity']) -> list[DomainBlock]:
+    import_fields: list=['domain', 'severity'],
+    scheme: str='https') -> list[DomainBlock]:
     """Fetch existing block list from server
 
     @param host: The remote host to connect to.
@@ -341,12 +344,14 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
 
     if admin:
         api_path = "/api/v1/admin/domain_blocks"
+        parse_format = 'json'
     else:
         api_path = "/api/v1/instance/domain_blocks"
+        parse_format = 'mastodon_api_public'
 
     headers = requests_headers(token)
 
-    url = f"https://{host}{api_path}"
+    url = f"{scheme}://{host}{api_path}"
 
     blocklist = []
     link = True
@@ -357,7 +362,7 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
             log.error(f"Cannot fetch remote blocklist: {response.content}")
             raise ValueError("Unable to fetch domain block list: %s", response)
 
-        blocklist.extend( parse_blocklist(response.content, 'json', import_fields) )
+        blocklist.extend( parse_blocklist(response.content, parse_format, import_fields) )
         
         # Parse the link header to find the next url to fetch
         # This is a weird and janky way of doing pagination but
@@ -378,12 +383,12 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
 
     return blocklist
 
-def delete_block(token: str, host: str, id: int):
+def delete_block(token: str, host: str, id: int, scheme: str='https'):
     """Remove a domain block"""
     log.debug(f"Removing domain block {id} at {host}...")
     api_path = "/api/v1/admin/domain_blocks/"
 
-    url = f"https://{host}{api_path}{id}"
+    url = f"{scheme}://{host}{api_path}{id}"
 
     response = requests.delete(url,
         headers=requests_headers(token),
@@ -396,7 +401,7 @@ def delete_block(token: str, host: str, id: int):
 
         raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
 
-def fetch_instance_follows(token: str, host: str, domain: str) -> int:
+def fetch_instance_follows(token: str, host: str, domain: str, scheme: str='https') -> int:
     """Fetch the followers of the target domain at the instance
 
     @param token: the Bearer authentication token for OAuth access
@@ -405,7 +410,7 @@ def fetch_instance_follows(token: str, host: str, domain: str) -> int:
     @returns: int, number of local followers of remote instance accounts
     """
     api_path = "/api/v1/admin/measures"
-    url = f"https://{host}{api_path}"
+    url = f"{scheme}://{host}{api_path}"
 
     key = 'instance_follows'
 
@@ -436,7 +441,8 @@ def fetch_instance_follows(token: str, host: str, domain: str) -> int:
 
 def check_followed_severity(host: str, token: str, domain: str,
     severity: BlockSeverity,
-    max_followed_severity: BlockSeverity=BlockSeverity('silence')):
+    max_followed_severity: BlockSeverity=BlockSeverity('silence'),
+    scheme: str='https'):
     """Check an instance to see if it has followers of a to-be-blocked instance"""
 
     log.debug("Checking followed severity...")
@@ -447,7 +453,7 @@ def check_followed_severity(host: str, token: str, domain: str,
     # If the instance has accounts that follow people on the to-be-blocked domain,
     # limit the maximum severity to the configured `max_followed_severity`.
     log.debug("checking for instance follows...")
-    follows = fetch_instance_follows(token, host, domain)
+    follows = fetch_instance_follows(token, host, domain, scheme)
     time.sleep(API_CALL_DELAY)
     if follows > 0:
         log.debug(f"Instance {host} has {follows} followers of accounts at {domain}.")
@@ -460,7 +466,7 @@ def is_change_needed(oldblock: dict, newblock: dict, import_fields: list):
     change_needed = oldblock.compare_fields(newblock, import_fields)
     return change_needed
 
-def update_known_block(token: str, host: str, block: DomainBlock):
+def update_known_block(token: str, host: str, block: DomainBlock, scheme: str='https'):
     """Update an existing domain block with information in blockdict"""
     api_path = "/api/v1/admin/domain_blocks/"
 
@@ -472,23 +478,23 @@ def update_known_block(token: str, host: str, block: DomainBlock):
         import pdb
         pdb.set_trace()
 
-    url = f"https://{host}{api_path}{id}"
+    url = f"{scheme}://{host}{api_path}{id}"
 
     response = requests.put(url,
         headers=requests_headers(token),
-        json=blockdata._asdict(),
+        json=blockdata,
         timeout=REQUEST_TIMEOUT
     )
     if response.status_code != 200:
         raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
 
-def add_block(token: str, host: str, blockdata: DomainBlock):
+def add_block(token: str, host: str, blockdata: DomainBlock, scheme: str='https'):
     """Block a domain on Mastodon host
     """
     log.debug(f"Adding block entry for {blockdata.domain} at {host}...")
     api_path = "/api/v1/admin/domain_blocks"
 
-    url = f"https://{host}{api_path}"
+    url = f"{scheme}://{host}{api_path}"
 
     response = requests.post(url,
         headers=requests_headers(token),
@@ -508,6 +514,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
                     dryrun: bool=False,
                     import_fields: list=['domain', 'severity'],
                     max_followed_severity:BlockSeverity=BlockSeverity('silence'),
+                    scheme: str='https',
                     ):
     """Push a blocklist to a remote instance.
     
@@ -524,7 +531,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
     # Force use of the admin API, and add 'id' to the list of fields
     if 'id' not in import_fields:
         import_fields.append('id')
-    serverblocks = fetch_instance_blocklist(host, token, True, import_fields)
+    serverblocks = fetch_instance_blocklist(host, token, True, import_fields, scheme)
 
     # # Convert serverblocks to a dictionary keyed by domain name
     knownblocks = {row.domain: row for row in serverblocks}
@@ -545,7 +552,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
                     # Confirm if we really want to change the severity
                     # If we still have followers of the remote domain, we may not
                     # want to go all the way to full suspend, depending on the configuration
-                    newseverity = check_followed_severity(host, token, oldblock.domain, newblock.severity, max_followed_severity)
+                    newseverity = check_followed_severity(host, token, oldblock.domain, newblock.severity, max_followed_severity, scheme)
                     if newseverity != oldblock.severity:
                         newblock.severity = newseverity
                     else:
@@ -561,7 +568,7 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
                 log.debug(f"Block as dict: {blockdata._asdict()}")
 
                 if not dryrun:
-                    update_known_block(token, host, blockdata)
+                    update_known_block(token, host, blockdata, scheme)
                     # add a pause here so we don't melt the instance
                     time.sleep(API_CALL_DELAY)
                 else:
@@ -578,9 +585,9 @@ def push_blocklist(token: str, host: str, blocklist: list[dict],
             log.debug(f"Block as dict: {newblock._asdict()}")
 
             # Make sure the new block doesn't clobber a domain with followers
-            newblock.severity = check_followed_severity(host, token, newblock.domain, newblock.severity, max_followed_severity)
+            newblock.severity = check_followed_severity(host, token, newblock.domain, newblock.severity, max_followed_severity, scheme)
             if not dryrun:
-                add_block(token, host, newblock)
+                add_block(token, host, newblock, scheme)
                 # add a pause here so we don't melt the instance
                 time.sleep(API_CALL_DELAY)
             else:

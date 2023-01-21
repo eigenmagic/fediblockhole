@@ -60,10 +60,33 @@ class BlocklistParserJSON(BlocklistParser):
         """
         return json.loads(blockdata)
 
-    def parse_item(self, blockitem: str) -> DomainBlock:
+    def parse_item(self, blockitem: dict) -> DomainBlock:
         # Remove fields we don't want to import
         origitem = blockitem.copy()
         for key in origitem:
+            if key not in self.import_fields:
+                del blockitem[key]
+
+        # Convert dict to NamedTuple with the double-star operator
+        # See: https://docs.python.org/3/tutorial/controlflow.html#tut-unpacking-arguments
+        block = DomainBlock(**blockitem)
+        if block.severity > self.max_severity:
+            block.severity = self.max_severity
+        return block
+
+class BlocklistParserMastodonAPIPublic(BlocklistParserJSON):
+    """The public blocklist API is slightly different to the admin one"""
+    
+    def parse_item(self, blockitem: dict) -> DomainBlock:
+        # Remove fields we don't want to import
+        origitem = blockitem.copy()
+        for key in origitem:
+            # The Mastodon public API uses the 'public' field
+            # to mean 'public_comment' because what even is consistency?
+            if key == 'comment':
+                key = 'public_comment'
+                blockitem['public_comment'] = blockitem['comment']
+                del blockitem['comment']
             if key not in self.import_fields:
                 del blockitem[key]
 
@@ -171,6 +194,7 @@ def str2bool(boolstring: str) -> bool:
 FORMAT_PARSERS = {
     'csv': BlocklistParserCSV,
     'json': BlocklistParserJSON,
+    'mastodon_api_public': BlocklistParserMastodonAPIPublic,
     'rapidblock.csv': RapidBlockParserCSV,
     'rapidblock.json': RapidBlockParserJSON,
 }
