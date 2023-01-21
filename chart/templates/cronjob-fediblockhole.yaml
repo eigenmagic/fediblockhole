@@ -1,0 +1,34 @@
+{{ if .Values.fediblockhole.cron.sync.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fediblockhole.fullname" . }}-sync
+  labels:
+    {{- include "fediblockhole.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.fediblockhole.cron.sync.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ include "fediblockhole.fullname" . }}-sync
+          {{- with .Values.jobAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: {{ include "fediblockhole.fullname" . }}-sync
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+#              command:
+#                - fediblock
+#                - -c
+#                - remove
+              envFrom:
+                - configMapRef:
+                    name: {{ include "fediblockhole.fullname" . }}-env
+                - secretRef:
+                    name: {{ template "fediblockhole.secretName" . }}
+{{- end }}
