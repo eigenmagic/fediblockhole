@@ -43,7 +43,7 @@ fediblockhole:
   blocklist_instance_sources: [
     # { domain: 'public.blocklist'}, # an instance with a public list of domain_blocks
     # { domain: 'jorts.horse', token: '<a_different_token>' }, # user accessible block list
-    # { domain: 'eigenmagic.net', token: '<a_token_with_read_auth>', admin = true }, # admin access required
+    # { domain: 'eigenmagic.net', token: '<a_token_with_read_auth>', admin: true }, # admin access required
   ]
 
   # List of URLs to read csv blocklists from
@@ -51,7 +51,7 @@ fediblockhole:
   # max_severity tells the parser to override any severities that are higher than this value
   # import_fields tells the parser to only import that set of fields from a specific source
   blocklist_url_sources: [
-    # { url: 'file:///path/to/fediblockhole/samples/demo-blocklist-01.csv', format = 'csv' },
+    # { url: 'file:///path/to/fediblockhole/samples/demo-blocklist-01.csv', format: 'csv' },
     { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-blocklist-01.csv', format: 'csv' },
 
   ]
