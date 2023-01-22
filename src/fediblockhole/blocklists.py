@@ -41,7 +41,7 @@ class BlocklistParser(object):
     """
     Base class for parsing blocklists
     """
-    preparse = False
+    do_preparse = False
 
     def __init__(self, import_fields: list=['domain', 'severity'], 
         max_severity: str='suspend'):
@@ -63,7 +63,7 @@ class BlocklistParser(object):
         @param blocklist: An Iterable of blocklist items
         @returns: A dict of DomainBlocks, keyed by domain
         """
-        if self.preparse:
+        if self.do_preparse:
             blockdata = self.preparse(blockdata)
 
         parsed_list = Blocklist(origin)
@@ -82,12 +82,13 @@ class BlocklistParser(object):
 
 class BlocklistParserJSON(BlocklistParser):
     """Parse a JSON formatted blocklist"""
-    preparse = True
+    do_preparse = True
 
     def preparse(self, blockdata) -> Iterable:
-        """Parse the blockdata as JSON
-        """
-        return json.loads(blockdata)
+        """Parse the blockdata as JSON if needed"""
+        if type(blockdata) == type(''):
+            return json.loads(blockdata)
+        return blockdata
 
     def parse_item(self, blockitem: dict) -> DomainBlock:
         # Remove fields we don't want to import
@@ -131,7 +132,7 @@ class BlocklistParserCSV(BlocklistParser):
 
     The parser expects the CSV data to include a header with the field names.
     """
-    preparse = True
+    do_preparse = True
 
     def preparse(self, blockdata) -> Iterable:
         """Use a csv.DictReader to create an iterable from the blockdata
@@ -237,6 +238,7 @@ def parse_blocklist(
     max_severity: str='suspend'):
     """Parse a blocklist in the given format
     """
-    parser = FORMAT_PARSERS[format](import_fields, max_severity)
     log.debug(f"parsing {format} blocklist with import_fields: {import_fields}...")
+
+    parser = FORMAT_PARSERS[format](import_fields, max_severity)
     return parser.parse_blocklist(blockdata, origin)
