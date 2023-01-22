@@ -31,4 +31,8 @@ spec:
                     name: {{ include "fediblockhole.fullname" . }}-env
                 - secretRef:
                     name: {{ template "fediblockhole.secretName" . }}
+            volumeMounts:
+              - name: config
+                mountPath: "path/in/the/pod/where/to/mount/the/file"
+                subPath: file.conf
 {{- end }}
