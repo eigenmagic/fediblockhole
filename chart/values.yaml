@@ -94,12 +94,12 @@ fediblockhole:
   ## Set which fields we import
   ## 'domain' and 'severity' are always imported, these are additional
   ## 
-  import_fields = ['public_comment', 'reject_media', 'reject_reports', 'obfuscate']
+  import_fields: ['public_comment', 'reject_media', 'reject_reports', 'obfuscate']
 
   ## Set which fields we export
   ## 'domain' and 'severity' are always exported, these are additional
   ## 
-  export_fields = ['public_comment']
+  export_fields: ['public_comment']
 
 # if you manually change the UID/GID environment variables, ensure these values
 # match:
