@@ -22,10 +22,10 @@ spec:
             - name: {{ include "fediblockhole.fullname" . }}-sync
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
-#              command:
-#                - fediblock
-#                - -c
-#                - remove
+              command:
+                - fediblock
+                - -c
+                - {{ .Values.fediblockhole.conf_file }}
               envFrom:
                 - configMapRef:
                     name: {{ include "fediblockhole.fullname" . }}-env
