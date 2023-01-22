@@ -12,7 +12,9 @@ image:
 
 fediblockhole:
   # location of the configuration file. Default is /etc/default/fediblockhole.conf.toml
-  conf_file: ""
+  conf_file:
+    path: ""
+    filename: ""
   cron:
     # -- run `fediblock-sync` every hour
     sync:
