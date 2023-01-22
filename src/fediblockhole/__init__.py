@@ -290,6 +290,10 @@ def merge_comments(oldcomment:str, newcomment:str) -> str:
     if oldcomment == newcomment or newcomment in ['', None]:
         return oldcomment
 
+    # If old comment is empty, just return the new one
+    if oldcomment in ['', None]:
+        return newcomment
+
     # We want to skip duplicate fragments so we don't end up
     # re-concatenating the same strings every time there's an
     # update, causing the comment to grow without bound.
