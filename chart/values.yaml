@@ -11,8 +11,10 @@ image:
   pullPolicy: IfNotPresent
 
 fediblockhole:
+  # location of the configuration file. Default is /etc/default/fediblockhole.conf.toml
+  conf_file: ""
   cron:
-    # -- run `tootctl media remove` every week
+    # -- run `fediblock-sync` every hour
     sync:
       # @ignored
       enabled: false
