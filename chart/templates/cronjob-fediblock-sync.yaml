@@ -25,7 +25,7 @@ spec:
               command:
                 - fediblock
                 - -c
-                - {{ .Values.fediblockhole.conf_file }}
+                - {{ .Values.fediblockhole.conf_file.path }}{{ .Values.fediblockhole.conf_file.filename }}
               envFrom:
                 - configMapRef:
                     name: {{ include "fediblockhole.fullname" . }}-env
@@ -33,6 +33,13 @@ spec:
                     name: {{ template "fediblockhole.secretName" . }}
             volumeMounts:
               - name: config
-                mountPath: "path/in/the/pod/where/to/mount/the/file"
-                subPath: file.conf
+                mountPath: "{{ .Values.fediblockhole.conf_file.path }}"
+                subPath: {{ .Values.fediblockhole.conf_file.filename }}
+          volumes:
+            - name: config
+              configMap:
+                name: {{ include "fediblockhole.fullname" . }}-env
+                items:
+                - key: "{{ .Values.fediblockhole.conf_file.filename }}"
+              path: "{{ .Values.fediblockhole.conf_file.filename }}"
 {{- end }}
