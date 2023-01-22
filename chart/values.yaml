@@ -42,8 +42,8 @@ fediblockhole:
   #   Overrides the global `import_fields` setting.
   blocklist_instance_sources: [
     # { domain: 'public.blocklist'}, # an instance with a public list of domain_blocks
-    # { domain: 'jorts.horse', token = '<a_different_token>' }, # user accessible block list
-    # { domain: 'eigenmagic.net', token = '<a_token_with_read_auth>', admin = true }, # admin access required
+    # { domain: 'jorts.horse', token: '<a_different_token>' }, # user accessible block list
+    # { domain: 'eigenmagic.net', token: '<a_token_with_read_auth>', admin = true }, # admin access required
   ]
 
   # List of URLs to read csv blocklists from
@@ -52,20 +52,20 @@ fediblockhole:
   # import_fields tells the parser to only import that set of fields from a specific source
   blocklist_url_sources: [
     # { url: 'file:///path/to/fediblockhole/samples/demo-blocklist-01.csv', format = 'csv' },
-    { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-blocklist-01.csv', format = 'csv' },
+    { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-blocklist-01.csv', format: 'csv' },
 
   ]
 
   ## These global allowlists override blocks from blocklists
   # These are the same format and structure as blocklists, but they take precedence
   allowlist_url_sources: [
-    { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-01.csv', format = 'csv' },
-    { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-02.csv', format = 'csv' },
+    { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-01.csv', format: 'csv' },
+    { url: 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-02.csv', format: 'csv' },
   ]
 
   # List of instances to write blocklist to
   blocklist_instance_destinations: [
-    # { domain: 'eigenmagic.net', token = '<read_write_token>', max_followed_severity = 'silence'},
+    # { domain: 'eigenmagic.net', token: '<read_write_token>', max_followed_severity: 'silence'},
   ]
 
   ## Store a local copy of the remote blocklists after we fetch them
