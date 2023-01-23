@@ -57,7 +57,7 @@ Rolling pod annotations
 {{- define "fediblockhole.rollingPodAnnotations" -}}
 rollme: {{ .Release.Revision | quote }}
 checksum/config-secrets: {{ include ( print $.Template.BasePath "/secrets.yaml" ) . | sha256sum | quote }}
-checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-env.yaml" ) . | sha256sum | quote }}
+checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-conf-toml.yaml" ) . | sha256sum | quote }}
 {{- end }}
 
 {{/*
