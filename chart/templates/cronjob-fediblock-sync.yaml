@@ -23,9 +23,9 @@ spec:
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               command:
-                - fediblock
+                - fediblock-sync
                 - -c
-                - {{- include "fediblockhole.conf_file_path" . }}{{- include "fediblockhole.conf_file_filename" . }}
+                - "{{- include "fediblockhole.conf_file_path" . }}{{- include "fediblockhole.conf_file_filename" . }}"
               envFrom:
                 - configMapRef:
                     name: {{ include "fediblockhole.fullname" . }}-conf-toml
