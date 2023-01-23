@@ -5,42 +5,4 @@ metadata:
   labels:
     {{- include "fediblockhole.labels" . | nindent 4 }}
 data:
-  {{- with .Values.fediblockhole.blocklist_instance_sources }}
-  blocklist_instance_sources: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.blocklist_url_sources }}
-  blocklist_url_sources: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.allowlist_url_sources }}
-  allowlist_url_sources: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.blocklist_instance_destinations }}
-  blocklist_instance_destinations: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.save_intermediate }}
-  save_intermediate: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.savedir }}
-  savedir: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.blocklist_savefile }}
-  blocklist_savefile: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.no_push_instance }}
-  no_push_instance: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.no_fetch_url }}
-  no_fetch_url: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.no_fetch_instance }}
-  no_fetch_instance: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.mergplan }}
-  mergeplan: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.import_fields }}
-  import_fields: {{ . }}
-  {{- end }}
-  {{- with .Values.fediblockhole.export_fields }}
-  export_fields: {{ . }}
-  {{- end }}
+  {{ (.Files.Glob "fediblockhole.conf.toml").AsConfig | nindent 4 }}
