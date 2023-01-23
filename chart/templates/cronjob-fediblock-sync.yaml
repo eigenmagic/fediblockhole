@@ -29,8 +29,6 @@ spec:
               envFrom:
                 - configMapRef:
                     name: {{ include "fediblockhole.fullname" . }}-conf-toml
-                - secretRef:
-                    name: {{ template "fediblockhole.secretName" . }}
             volumeMounts:
               - name: config
                 mountPath: "{{ .Values.fediblockhole.conf_file.path }}"
