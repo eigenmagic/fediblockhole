@@ -56,26 +56,5 @@ Rolling pod annotations
 */}}
 {{- define "fediblockhole.rollingPodAnnotations" -}}
 rollme: {{ .Release.Revision | quote }}
-checksum/config-secrets: {{ include ( print $.Template.BasePath "/secrets.yaml" ) . | sha256sum | quote }}
 checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-conf-toml.yaml" ) . | sha256sum | quote }}
 {{- end }}
-
-{{/*
-Get the fediblockhole secret.
-*/}}
-{{- define "fediblockhole.secretName" -}}
-{{- if .Values.fediblockhole.secrets.existingSecret }}
-    {{- printf "%s" (tpl .Values.fediblockhole.secrets.existingSecret $) -}}
-{{- else -}}
-    {{- printf "%s" (include "common.names.fullname" .) -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return true if a fediblockhole secret object should be created
-*/}}
-{{- define "fediblockhole.createSecret" -}}
-{{- if (not .Values.fediblockhole.secrets.existingSecret) -}}
-    {{- true -}}
-{{- end -}}
-{{- end -}}
