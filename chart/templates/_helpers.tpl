@@ -86,7 +86,7 @@ Get the fediblockhole secret.
 Return true if a fediblockhole secret object should be created
 */}}
 {{- define "fediblockhole.createSecret" -}}
-{{- if (not .Values.mastodon.secrets.existingSecret) -}}
+{{- if (not .Values.fediblockhole.secrets.existingSecret) -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}
