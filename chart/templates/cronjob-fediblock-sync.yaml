@@ -36,7 +36,7 @@ spec:
           volumes:
             - name: config
               configMap:
-                name: {{ include "fediblockhole.fullname" . }}-env
+                name: {{ include "fediblockhole.fullname" . }}-conf-toml
                 items:
                 - key: "{{ .Values.fediblockhole.conf_file.filename }}"
               path: "{{ .Values.fediblockhole.conf_file.filename }}"
