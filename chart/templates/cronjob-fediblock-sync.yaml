@@ -31,7 +31,7 @@ spec:
                     name: {{ include "fediblockhole.fullname" . }}-conf-toml
             volumeMounts:
               - name: config
-                mountPath: {{- "include fediblockhole.conf_file_path" . | quote }}
+                mountPath: {{- include "fediblockhole.conf_file_path" . | quote }}
                 subPath: {{- include "fediblockhole.conf_file_filename" . }}
           volumes:
             - name: config
