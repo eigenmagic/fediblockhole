@@ -58,3 +58,21 @@ Rolling pod annotations
 rollme: {{ .Release.Revision | quote }}
 checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-conf-toml.yaml" ) . | sha256sum | quote }}
 {{- end }}
+
+{{/*
+Create the default conf file path and filename
+*/}}
+{{- define "fediblockhole.conf_file_path" -}}
+{{- if .Values.fediblockhole.conf_file.path }}
+{{- default .Values.fediblockhole.conf_file.path }}
+{{- else }}
+{{- default "default" "/etc/default/" }}
+{{- end }}
+{{- end }}
+{{- define "fediblockhole.conf_file_filename" -}}
+{{- if .Values.fediblockhole.conf_file.filename }}
+{{- default .Values.fediblockhole.conf_file.filename }}
+{{- else }}
+{{- default "default" "fediblockhole.conf.toml" }}
+{{- end }}
+{{- end }}
