@@ -25,19 +25,19 @@ spec:
               command:
                 - fediblock-sync
                 - -c
-                - {{- include "fediblockhole.conf_file_path" . }}{{- include "fediblockhole.conf_file_filename" . }}
+                - {{ include "fediblockhole.conf_file_path" . }}{{ include "fediblockhole.conf_file_filename" . }}
               envFrom:
                 - configMapRef:
                     name: {{ include "fediblockhole.fullname" . }}-conf-toml
             volumeMounts:
               - name: config
-                mountPath: {{- include "fediblockhole.conf_file_path" . | quote }}
-                subPath: {{- include "fediblockhole.conf_file_filename" . }}
+                mountPath: {{ include "fediblockhole.conf_file_path" . | quote }}
+                subPath: {{ include "fediblockhole.conf_file_filename" . }}
           volumes:
             - name: config
               configMap:
                 name: {{ include "fediblockhole.fullname" . }}-conf-toml
                 items:
-                - key: {{- include "fediblockhole.conf_file_filename" . | quote }}
-              path: {{- include "fediblockhole.conf_file_filename" . | quote }}
+                - key: {{ include "fediblockhole.conf_file_filename" . | quote }}
+              path: {{ include "fediblockhole.conf_file_filename" . | quote }}
 {{- end }}
