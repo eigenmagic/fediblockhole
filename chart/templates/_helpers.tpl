@@ -63,16 +63,8 @@ checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-co
 Create the default conf file path and filename
 */}}
 {{- define "fediblockhole.conf_file_path" -}}
-{{- if .Values.fediblockhole.conf_file.path }}
-{{- .Values.fediblockhole.conf_file.path }}
-{{- else }}
-{{- "/etc/default/" }}
-{{- end }}
+{{- default "/etc/default/" .Values.fediblockhole.conf_file.path }}
 {{- end }}
 {{- define "fediblockhole.conf_file_filename" -}}
-{{- if .Values.fediblockhole.conf_file.filename }}
-{{- .Values.fediblockhole.conf_file.filename }}
-{{- else }}
-{{- "fediblockhole.conf.toml" }}
-{{- end }}
+{{- default "fediblockhole.conf.toml" .Values.fediblockhole.conf_file.filename }}
 {{- end }}
