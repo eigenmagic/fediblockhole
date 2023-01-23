@@ -1,0 +1,67 @@
+# List of instances to read blocklists from.
+# If the instance makes its blocklist public, no authorization token is needed.
+#   Otherwise, `token` is a Bearer token authorised to read domain_blocks.
+# If `admin` = True, use the more detailed admin API, which requires a token with a 
+#   higher level of authorization.
+# If `import_fields` are provided, only import these fields from the instance.
+#   Overrides the global `import_fields` setting.
+blocklist_instance_sources = [
+  # { domain = 'public.blocklist'}, # an instance with a public list of domain_blocks
+  # { domain = 'jorts.horse', token = '<a_different_token>' }, # user accessible block list
+  # { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>', admin = true }, # admin access required
+]
+
+# List of URLs to read csv blocklists from
+# Format tells the parser which format to use when parsing the blocklist
+# max_severity tells the parser to override any severities that are higher than this value
+# import_fields tells the parser to only import that set of fields from a specific source
+blocklist_url_sources = [
+  # { url = 'file:///path/to/fediblockhole/samples/demo-blocklist-01.csv', format = 'csv' },
+  { url = 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-blocklist-01.csv', format = 'csv' },
+
+]
+
+## These global allowlists override blocks from blocklists
+# These are the same format and structure as blocklists, but they take precedence
+allowlist_url_sources = [
+  { url = 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-01.csv', format = 'csv' },
+  { url = 'https://raw.githubusercontent.com/eigenmagic/fediblockhole/main/samples/demo-allowlist-02.csv', format = 'csv' },
+]
+
+# List of instances to write blocklist to
+blocklist_instance_destinations = [
+  # { domain = 'eigenmagic.net', token = '<read_write_token>', max_followed_severity = 'silence'},
+]
+
+## Store a local copy of the remote blocklists after we fetch them
+#save_intermediate = true
+
+## Directory to store the local blocklist copies
+# savedir = '/tmp'
+
+## File to save the fully merged blocklist into
+# blocklist_savefile = '/tmp/merged_blocklist.csv'
+
+## Don't push blocklist to instances, even if they're defined above
+# no_push_instance = false
+
+## Don't fetch blocklists from URLs, even if they're defined above
+# no_fetch_url = false
+
+## Don't fetch blocklists from instances, even if they're defined above
+# no_fetch_instance = false
+
+## Set the mergeplan to use when dealing with overlaps between blocklists
+# The default 'max' mergeplan will use the harshest severity block found for a domain.
+# The 'min' mergeplan will use the lightest severity block found for a domain.
+# mergeplan = 'max'
+
+## Set which fields we import
+## 'domain' and 'severity' are always imported, these are additional
+## 
+import_fields = ['public_comment', 'reject_media', 'reject_reports', 'obfuscate']
+
+## Set which fields we export
+## 'domain' and 'severity' are always exported, these are additional
+## 
+export_fields = ['public_comment']
