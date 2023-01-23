@@ -5,6 +5,4 @@ metadata:
   labels:
     {{- include "fediblockhole.labels" . | nindent 4 }}
 data:
-  conf_file_path: {{ .Values.fediblockhole.conf_file.path | default "/etc/default/" | quote }}
-  conf_file_filename: {{ .Values.fediblockhole.conf_file.filename | default "fediblockhole.conf.toml" | quote }}
   {{ (.Files.Glob "fediblockhole.conf.toml").AsConfig | nindent 4 }}
