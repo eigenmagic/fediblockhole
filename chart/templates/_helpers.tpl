@@ -64,15 +64,15 @@ Create the default conf file path and filename
 */}}
 {{- define "fediblockhole.conf_file_path" -}}
 {{- if .Values.fediblockhole.conf_file.path }}
-{{- default .Values.fediblockhole.conf_file.path }}
+{{- .Values.fediblockhole.conf_file.path }}
 {{- else }}
-{{- default "/etc/default/" }}
+{{- "/etc/default/" }}
 {{- end }}
 {{- end }}
 {{- define "fediblockhole.conf_file_filename" -}}
 {{- if .Values.fediblockhole.conf_file.filename }}
-{{- default .Values.fediblockhole.conf_file.filename }}
+{{- .Values.fediblockhole.conf_file.filename }}
 {{- else }}
-{{- default "fediblockhole.conf.toml" }}
+{{- "fediblockhole.conf.toml" }}
 {{- end }}
 {{- end }}
