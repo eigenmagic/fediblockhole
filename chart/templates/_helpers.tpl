@@ -61,17 +61,6 @@ checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-co
 {{- end }}
 
 {{/*
-Create the name of the service account to use
-*/}}
-{{- define "fediblockhole.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "fediblockhole.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
-
-{{/*
 Get the fediblockhole secret.
 */}}
 {{- define "fediblockhole.secretName" -}}
