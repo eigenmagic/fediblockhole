@@ -66,13 +66,13 @@ Create the default conf file path and filename
 {{- if .Values.fediblockhole.conf_file.path }}
 {{- default .Values.fediblockhole.conf_file.path }}
 {{- else }}
-{{- default "default" "/etc/default/" }}
+{{- default "/etc/default/" }}
 {{- end }}
 {{- end }}
 {{- define "fediblockhole.conf_file_filename" -}}
 {{- if .Values.fediblockhole.conf_file.filename }}
 {{- default .Values.fediblockhole.conf_file.filename }}
 {{- else }}
-{{- default "default" "fediblockhole.conf.toml" }}
+{{- default "fediblockhole.conf.toml" }}
 {{- end }}
 {{- end }}
