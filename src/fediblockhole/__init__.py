@@ -286,9 +286,13 @@ def merge_comments(oldcomment:str, newcomment:str) -> str:
     if oldcomment in ['', None] and newcomment in ['', None]:
         return ''
 
-    # If both comments are the same, don't merge
-    if oldcomment == newcomment:
+    # If both comments are the same, or new comment is empty, don't merge
+    if oldcomment == newcomment or newcomment in ['', None]:
         return oldcomment
+
+    # If old comment is empty, just return the new one
+    if oldcomment in ['', None]:
+        return newcomment
 
     # We want to skip duplicate fragments so we don't end up
     # re-concatenating the same strings every time there's an
