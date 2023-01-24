@@ -25,7 +25,7 @@ spec:
               command:
                 - fediblock-sync
                 - -c
-                - {{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . -}}
+                - {{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . }}
               # envFrom:
                 # - configMapRef:
                     # name: {{ include "fediblockhole.fullname" . }}-conf-toml
