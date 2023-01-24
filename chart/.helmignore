@@ -5,7 +5,6 @@
 # Manually added by us
 # --------------------
 #
-*.toml
 
 # Boilerplate .helmignore from `helm create mastodon`
 # ---------------------------------------------------
