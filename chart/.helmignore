@@ -5,9 +5,7 @@
 # Manually added by us
 # --------------------
 #
-dev-values.yaml
-mastodon-*.tgz
-
+*.toml
 
 # Boilerplate .helmignore from `helm create mastodon`
 # ---------------------------------------------------
