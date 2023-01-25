@@ -29,7 +29,6 @@ spec:
               volumeMounts:
                 - name: config
                   mountPath: {{ include "fediblockhole.conf_file_path" . | quote }}
-                  # subPath: {{ include "fediblockhole.conf_file_filename" . }}
           volumes:
             - name: config
               configMap:
