@@ -52,14 +52,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Rolling pod annotations
-*/}}
-{{- define "fediblockhole.rollingPodAnnotations" -}}
-rollme: {{ .Release.Revision | quote }}
-checksum/config-configmap: {{ include ( print $.Template.BasePath "/configmap-conf-toml.yaml" ) . | sha256sum | quote }}
-{{- end }}
-
-{{/*
 Create the default conf file path and filename
 */}}
 {{- define "fediblockhole.conf_file_path" -}}
@@ -67,4 +59,12 @@ Create the default conf file path and filename
 {{- end }}
 {{- define "fediblockhole.conf_file_filename" -}}
 {{- default "fediblockhole.conf.toml" .Values.fediblockhole.conf_file.filename }}
+{{- end }}
+
+{{/*
+Rolling pod annotations
+*/}}
+{{- define "fediblockhole.rollingPodAnnotations" -}}
+rollme: {{ .Release.Revision | quote }}
+checksum/config-configmap: {{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . -}} | sha256sum | quote }}
 {{- end }}
