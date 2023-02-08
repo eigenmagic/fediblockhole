@@ -22,6 +22,8 @@ fediblockhole:
       enabled: false
       # @ignored
       schedule: "0 * * * *"
+      failedJobsHistoryLimit: 1
+      successfulJobsHistoryLimit: 3
 
 # if you manually change the UID/GID environment variables, ensure these values
 # match:
