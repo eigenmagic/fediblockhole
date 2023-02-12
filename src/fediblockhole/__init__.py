@@ -222,17 +222,21 @@ def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max',
         if threshold_type == 'count':
             domain_threshold_level = len(domain_blocks[domain])
         elif threshold_type == 'pct':
-            domain_threshold_level = len(domain_blocks[domain]) / num_blocklists
+            domain_threshold_level = len(domain_blocks[domain]) / num_blocklists * 100
+            # log.debug(f"domain threshold level: {domain_threshold_level}")
         else:
             raise ValueError(f"Unsupported threshold type '{threshold_type}'. Supported values are: 'count', 'pct'")
 
+        log.debug(f"Checking if {domain_threshold_level} >= {threshold} for {domain}")
         if domain_threshold_level >= threshold:
             # Add first block in the list to merged
             block = domain_blocks[domain][0]
+            log.debug(f"Yes. Merging block: {block}")
+
             # Merge the others with this record
             for newblock in domain_blocks[domain][1:]:
                 block = apply_mergeplan(block, newblock, mergeplan)
-        merged.blocks[block.domain] = block
+            merged.blocks[block.domain] = block
 
     return merged
 
