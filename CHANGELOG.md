@@ -6,26 +6,21 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [Unreleased]
 
-## [v0.4.3] - 2023-02-12
+## [v0.4.3] - 2023-02-13
 
 ### Added
 
-- Blockdata var already converted to _asdict() (8d3b9da)
 - Added Mastodon public API parser type because #33 (9fe9342)
 - Added ability to set scheme when talking to instances (9fe9342)
 - Added tests of comment merging. (fb3a7ec)
+- Added blocklist thresholds. (bb1d89e)
+- Added logging to help debug threshold-based merging. (b67ff0c)
 
 ### Changed
 
 - Dropped minimum Python version to 3.6 (df3c16f)
 - Don't merge comments if new comment is empty. (b8aa11e)
 - Tweaked comment merging to pass tests. (fb3a7ec)
-
-## [v0.4.1] - 2023-01-15
-
-Allowlist support.
-
-- Planning to add allowlist thresholds as noted in #28
 
 ## [v0.4.2] - 2023-01-19
 
