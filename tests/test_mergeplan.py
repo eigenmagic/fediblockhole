@@ -1,7 +1,7 @@
 """Various mergeplan tests
 """
 
-from fediblockhole.blocklist_parser import parse_blocklist
+from fediblockhole.blocklists import parse_blocklist
 from fediblockhole import merge_blocklists, merge_comments, apply_mergeplan
 
 from fediblockhole.const import SeverityLevel, DomainBlock
@@ -22,20 +22,19 @@ import_fields = [
 
 def load_test_blocklist_data(datafiles):
 
-    blocklists = {}
+    blocklists = []
 
     for df in datafiles:
         with open(df) as fp:
             data = fp.read()
-            bl = parse_blocklist(data, 'csv', import_fields)
-            blocklists[df] = bl
+            bl = parse_blocklist(data, df, 'csv', import_fields)
+            blocklists.append(bl)
     
     return blocklists
 
 def test_mergeplan_max():
     """Test 'max' mergeplan"""
     blocklists = load_test_blocklist_data([datafile01, datafile02])
-
     bl = merge_blocklists(blocklists, 'max')
     assert len(bl) == 13
 

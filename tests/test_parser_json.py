@@ -1,8 +1,8 @@
 """Tests of the CSV parsing
 """
 
-from fediblockhole.blocklist_parser import BlocklistParserJSON, parse_blocklist
-from fediblockhole.const import DomainBlock, BlockSeverity, SeverityLevel
+from fediblockhole.blocklists import BlocklistParserJSON, parse_blocklist
+from fediblockhole.const import SeverityLevel
 
 datafile = 'data-mastodon.json'
 
@@ -14,33 +14,32 @@ def test_json_parser():
 
     data = load_data()
     parser = BlocklistParserJSON()
-    bl = parser.parse_blocklist(data)
+    bl = parser.parse_blocklist(data, 'test_json')
 
     assert len(bl) == 10
-    assert bl[0].domain == 'example.org'
-    assert bl[1].domain == 'example2.org'
-    assert bl[2].domain == 'example3.org'
-    assert bl[3].domain == 'example4.org'
+    assert 'example.org' in bl
+    assert 'example2.org' in bl
+    assert 'example3.org' in bl
+    assert 'example4.org' in bl
 
-    assert bl[0].severity.level == SeverityLevel.SUSPEND
-    assert bl[1].severity.level == SeverityLevel.SILENCE
-    assert bl[2].severity.level == SeverityLevel.SUSPEND
-    assert bl[3].severity.level == SeverityLevel.NONE
+    assert bl['example.org'].severity.level == SeverityLevel.SUSPEND
+    assert bl['example2.org'].severity.level == SeverityLevel.SILENCE
+    assert bl['example3.org'].severity.level == SeverityLevel.SUSPEND
+    assert bl['example4.org'].severity.level == SeverityLevel.NONE
 
 def test_ignore_comments():
 
     data = load_data()
     parser = BlocklistParserJSON()
-    bl = parser.parse_blocklist(data)
+    bl = parser.parse_blocklist(data, 'test_json')
 
     assert len(bl) == 10
-    assert bl[0].domain == 'example.org'
-    assert bl[1].domain == 'example2.org'
-    assert bl[2].domain == 'example3.org'
-    assert bl[3].domain == 'example4.org'
+    assert 'example.org' in bl
+    assert 'example2.org' in bl
+    assert 'example3.org' in bl
+    assert 'example4.org' in bl
 
-    assert bl[0].public_comment == ''
-    assert bl[0].private_comment == ''
-
-    assert bl[2].public_comment == ''
-    assert bl[2].private_comment == ''
+    assert bl['example.org'].public_comment == ''
+    assert bl['example.org'].private_comment == ''
+    assert bl['example3.org'].public_comment == ''
+    assert bl['example4.org'].private_comment == ''
