@@ -49,3 +49,33 @@ allowlist_url_sources = [ { url='file:///path/to/allowlist', format='csv'} ]
         'url': 'file:///path/to/allowlist',
         'format': 'csv',
         }]
+
+def test_set_merge_thresold_default():
+    tomldata = """
+"""
+    args = shim_argparse([], tomldata)
+
+    assert args.mergeplan == 'max'
+    assert args.merge_threshold_type == 'count'
+
+def test_set_merge_thresold_count():
+    tomldata = """# Add a merge threshold
+merge_threshold_type = 'count'
+merge_threshold = 2
+"""
+    args = shim_argparse([], tomldata)
+
+    assert args.mergeplan == 'max'
+    assert args.merge_threshold_type == 'count'
+    assert args.merge_threshold == 2
+
+def test_set_merge_thresold_pct():
+    tomldata = """# Add a merge threshold
+merge_threshold_type = 'pct'
+merge_threshold = 35
+"""
+    args = shim_argparse([], tomldata)
+
+    assert args.mergeplan == 'max'
+    assert args.merge_threshold_type == 'pct'
+    assert args.merge_threshold == 35

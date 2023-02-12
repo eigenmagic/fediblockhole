@@ -71,7 +71,7 @@ def sync_blocklists(conf: argparse.Namespace):
             import_fields, conf.save_intermediate, conf.savedir, export_fields))
 
     # Merge blocklists into an update dict
-    merged = merge_blocklists(blocklists, conf.mergeplan)
+    merged = merge_blocklists(blocklists, conf.mergeplan, conf.merge_threshold, conf.merge_threshold_type)
 
     # Remove items listed in allowlists, if any
     allowlists = fetch_allowlists(conf)
@@ -710,6 +710,12 @@ def augment_args(args, tomldata: str=None):
     if not args.mergeplan:
         args.mergeplan = conf.get('mergeplan', 'max')
 
+    if not args.merge_threshold:
+        args.merge_threshold = conf.get('merge_threshold', 0)
+
+    if not args.merge_threshold_type:
+        args.merge_threshold_type = conf.get('merge_threshold_type', 'count')
+
     args.blocklist_url_sources = conf.get('blocklist_url_sources', [])
     args.blocklist_instance_sources = conf.get('blocklist_instance_sources', [])
     args.allowlist_url_sources = conf.get('allowlist_url_sources', [])
@@ -731,6 +737,8 @@ def setup_argparse():
     ap.add_argument('-S', '--save-intermediate', dest="save_intermediate", action='store_true', help="Save intermediate blocklists we fetch to local files.")
     ap.add_argument('-D', '--savedir', dest="savedir", help="Directory path to save intermediate lists.")
     ap.add_argument('-m', '--mergeplan', choices=['min', 'max'], help="Set mergeplan.")
+    ap.add_argument('--merge-threshold', type=int, help="Merge threshold value")
+    ap.add_argument('--merge-threshold-type', choices=['count', 'pct'], help="Type of merge threshold to use.")
 
     ap.add_argument('-I', '--import-field', dest='import_fields', action='append', help="Extra blocklist fields to import.")
     ap.add_argument('-E', '--export-field', dest='export_fields', action='append', help="Extra blocklist fields to export.")
