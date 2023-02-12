@@ -17,6 +17,7 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ### Changed
 
+- Dropped minimum Python version to 3.6 (df3c16f)
 - Don't merge comments if new comment is empty. (b8aa11e)
 - Tweaked comment merging to pass tests. (fb3a7ec)
 
