@@ -197,6 +197,7 @@ Supported formats are currently:
 
  - Comma-Separated Values (CSV)
  - JSON
+ - Mastodon v4.1 flavoured CSV
  - RapidBlock CSV
  - RapidBlock JSON
 
@@ -213,6 +214,17 @@ Optional fields that the tool understands are `public_comment`, `private_comment
 A CSV format blocklist must contain a header row with at least a `domain` and `severity` field.
 
 Optional fields, as listed about, may also be included.
+
+#### Mastodon v4.1 CSV format
+
+As of v4.1.0, Mastodon can export domain blocks as a CSV file. However, in their
+infinite wisdom, the Mastodon devs decided that field names should begin with a
+`#` character in the header, unlike the field names in the JSON output via the
+API… or in pretty much any other CSV file anywhere else.
+
+Setting the format to `mastodon_csv` will strip off the `#` character when
+parsing and FediBlockHole can then use Mastodon v4.1 CSV blocklists like any
+other CSV formatted blocklist.
 
 #### JSON format
 
