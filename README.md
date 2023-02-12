@@ -81,17 +81,16 @@ admin to add a new Application at
 `https://<instance-domain>/settings/applications/` and then tell you the access
 token.
 
-The application needs the `admin:read:domain_blocks` OAuth scope, but
-unfortunately this scope isn't available in the current application screen
-(v4.0.2 of Mastodon at time of writing, but this has been fixed in the main
-branch). 
+The application needs the `admin:read:domain_blocks` OAuth scope. You can allow
+full `admin:read` access, but be aware that this authorizes someone to read all
+the data in the instance. That's asking a lot of a remote instance admin who
+just wants to share domain_blocks with you.
 
-You can allow full `admin:read` access, but be aware that this authorizes
-someone to read all the data in the instance. That's asking a lot of a remote
-instance admin who just wants to share domain_blocks with you.
+The `admin:read:domain_blocks` scope is available as of Mastodon v4.1.0, but for
+earlier versions admins will need to use the manual method described below.
 
-For now, you can ask the instance admin to update the scope in the database
-directly like this:
+You can update the scope for your application in the database directly like
+this:
 
 ```
 UPDATE oauth_applications as app
@@ -136,8 +135,12 @@ chmod o-r <configfile>
 ```
 
 You can also grant full `admin:write` scope to the application, but if you'd
-prefer to keep things more tightly secured you'll need to use SQL to set the
-scopes in the database and then regenerate the token:
+prefer to keep things more tightly secured, limit the scope to
+`admin:read:domain_blocks`.
+
+Again, this scope is only available in the application config screen as of
+Mastodon v4.1.0. If your instance is on an earlier version, you'll need to use
+SQL to set the scopes in the database and then regenerate the token:
 
 ```
 UPDATE oauth_applications as app
