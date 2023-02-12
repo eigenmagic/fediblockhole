@@ -41,6 +41,8 @@ appropriate.
 
  - Provides (hopefully) sensible defaults to minimise first-time setup.
  - Global and fine-grained configuration options available for those complex situations that crop up sometimes.
+ - Allowlists to override blocks in blocklists to ensure you never block instances you want to keep.
+ - Blocklist thresholds if you want to only block when an instance shows up in multiple blocklists.
 
 ## Installing
 
