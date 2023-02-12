@@ -15,6 +15,8 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 - Added tests of comment merging. (fb3a7ec)
 - Added blocklist thresholds. (bb1d89e)
 - Added logging to help debug threshold-based merging. (b67ff0c)
+- Added extra documentation on configuring thresholds. (6c72af8)
+- Updated documentation to reflect Mastodon v4.1.0 changes to the application scopes screen. (b92dd21)
 
 ### Changed
 
