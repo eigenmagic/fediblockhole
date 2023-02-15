@@ -160,6 +160,24 @@ class BlocklistParserCSV(BlocklistParser):
             block.severity = self.max_severity
         return block
 
+class BlocklistParserMastodonCSV(BlocklistParserCSV):
+    """ Parse Mastodon CSV formatted blocklists
+
+    The Mastodon v4.1.x domain block CSV export prefixes its
+    field names with a '#' character because… reasons?
+    """
+    do_preparse = True
+
+    def parse_item(self, blockitem: dict) -> DomainBlock:
+        """Build a new blockitem dict with new un-#ed keys
+        """
+        newdict = {}
+        for key in blockitem:
+            newkey = key.lstrip('#')
+            newdict[newkey] = blockitem[key]
+
+        return super().parse_item(newdict)
+
 class RapidBlockParserCSV(BlocklistParserCSV):
     """ Parse RapidBlock CSV blocklists
 
@@ -223,6 +241,7 @@ def str2bool(boolstring: str) -> bool:
 
 FORMAT_PARSERS = {
     'csv': BlocklistParserCSV,
+    'mastodon_csv': BlocklistParserMastodonCSV,
     'json': BlocklistParserJSON,
     'mastodon_api_public': BlocklistParserMastodonAPIPublic,
     'rapidblock.csv': RapidBlockParserCSV,
