@@ -1,19 +1,47 @@
 """Parse various blocklist data formats
 """
-from typing import Iterable
-from .const import DomainBlock, BlockSeverity
-
 import csv
 import json
+from typing import Iterable
+from dataclasses import dataclass, field
+
+from .const import DomainBlock, BlockSeverity
 
 import logging
 log = logging.getLogger('fediblockhole')
+
+@dataclass
+class Blocklist:
+    """ A Blocklist object
+
+    A Blocklist is a list of DomainBlocks from an origin
+    """
+    origin: str = None
+    blocks: dict[str, DomainBlock] = field(default_factory=dict)
+
+    def __len__(self):
+        return len(self.blocks)
+
+    def __class_getitem__(cls, item):
+        return dict[str, DomainBlock]
+
+    def __getitem__(self, item):
+        return self.blocks[item]
+
+    def __iter__(self):
+        return self.blocks.__iter__()
+
+    def items(self):
+        return self.blocks.items()
+
+    def values(self):
+        return self.blocks.values()
 
 class BlocklistParser(object):
     """
     Base class for parsing blocklists
     """
-    preparse = False
+    do_preparse = False
 
     def __init__(self, import_fields: list=['domain', 'severity'], 
         max_severity: str='suspend'):
@@ -30,17 +58,18 @@ class BlocklistParser(object):
         """
         raise NotImplementedError
 
-    def parse_blocklist(self, blockdata) -> dict[DomainBlock]:
+    def parse_blocklist(self, blockdata, origin:str=None) -> Blocklist:
         """Parse an iterable of blocklist items
         @param blocklist: An Iterable of blocklist items
         @returns: A dict of DomainBlocks, keyed by domain
         """
-        if self.preparse:
+        if self.do_preparse:
             blockdata = self.preparse(blockdata)
 
-        parsed_list = []
+        parsed_list = Blocklist(origin)
         for blockitem in blockdata:
-            parsed_list.append(self.parse_item(blockitem))
+            block = self.parse_item(blockitem)
+            parsed_list.blocks[block.domain] = block
         return parsed_list
     
     def parse_item(self, blockitem) -> DomainBlock:
@@ -53,12 +82,13 @@ class BlocklistParser(object):
 
 class BlocklistParserJSON(BlocklistParser):
     """Parse a JSON formatted blocklist"""
-    preparse = True
+    do_preparse = True
 
     def preparse(self, blockdata) -> Iterable:
-        """Parse the blockdata as JSON
-        """
-        return json.loads(blockdata)
+        """Parse the blockdata as JSON if needed"""
+        if type(blockdata) == type(''):
+            return json.loads(blockdata)
+        return blockdata
 
     def parse_item(self, blockitem: dict) -> DomainBlock:
         # Remove fields we don't want to import
@@ -102,7 +132,7 @@ class BlocklistParserCSV(BlocklistParser):
 
     The parser expects the CSV data to include a header with the field names.
     """
-    preparse = True
+    do_preparse = True
 
     def preparse(self, blockdata) -> Iterable:
         """Use a csv.DictReader to create an iterable from the blockdata
@@ -129,6 +159,24 @@ class BlocklistParserCSV(BlocklistParser):
         if block.severity > self.max_severity:
             block.severity = self.max_severity
         return block
+
+class BlocklistParserMastodonCSV(BlocklistParserCSV):
+    """ Parse Mastodon CSV formatted blocklists
+
+    The Mastodon v4.1.x domain block CSV export prefixes its
+    field names with a '#' character because… reasons?
+    """
+    do_preparse = True
+
+    def parse_item(self, blockitem: dict) -> DomainBlock:
+        """Build a new blockitem dict with new un-#ed keys
+        """
+        newdict = {}
+        for key in blockitem:
+            newkey = key.lstrip('#')
+            newdict[newkey] = blockitem[key]
+
+        return super().parse_item(newdict)
 
 class RapidBlockParserCSV(BlocklistParserCSV):
     """ Parse RapidBlock CSV blocklists
@@ -193,6 +241,7 @@ def str2bool(boolstring: str) -> bool:
 
 FORMAT_PARSERS = {
     'csv': BlocklistParserCSV,
+    'mastodon_csv': BlocklistParserMastodonCSV,
     'json': BlocklistParserJSON,
     'mastodon_api_public': BlocklistParserMastodonAPIPublic,
     'rapidblock.csv': RapidBlockParserCSV,
@@ -202,11 +251,13 @@ FORMAT_PARSERS = {
 # helper function to select the appropriate Parser
 def parse_blocklist(
     blockdata,
+    origin,
     format="csv",
     import_fields: list=['domain', 'severity'],
     max_severity: str='suspend'):
     """Parse a blocklist in the given format
     """
-    parser = FORMAT_PARSERS[format](import_fields, max_severity)
     log.debug(f"parsing {format} blocklist with import_fields: {import_fields}...")
-    return parser.parse_blocklist(blockdata)
+
+    parser = FORMAT_PARSERS[format](import_fields, max_severity)
+    return parser.parse_blocklist(blockdata, origin)

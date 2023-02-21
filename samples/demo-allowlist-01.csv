@@ -1,3 +1,4 @@
 "domain","severity","private_comment","public_comment","reject_media","reject_reports","obfuscate"
-"eigenmagic.net","noop","Never block me","Only the domain field matters",False,False,False
-"example.org","noop","Never block me either","The severity is ignored as are all other fields",False,False,False
+"eigenmagic.net","noop","Never block me","Only the domain field matters for allowlists",False,False,False
+"example.org","noop","Never block me either","The severity is ignored in allowlists as are all other fields",False,False,False
+"demo01.example.org","noop","Never block me either","But you can use them to leave yourself or others notes on why the item is here",False,False,False
