@@ -82,11 +82,9 @@ Create the default allowlist file path and filename
 {{/*
 Create the blocklist file path and filename
 */}}
-{{- if .Values.fediblockhole.block_file.path && .Values.fediblockhole.block_file.filename }}
 {{- define "fediblockhole.block_file_path" -}}
 {{- .Values.fediblockhole.block_file.path }}
 {{- end }}
 {{- define "fediblockhole.block_file_filename" -}}
 {{- .Values.fediblockhole.block_file.filename }}
-{{- end }}
 {{- end }}
