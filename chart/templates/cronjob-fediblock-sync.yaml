@@ -53,7 +53,7 @@ spec:
             {{- with .Values.fediblockhole.block_file }}
             - name: block
               configMap:
-                name: {{ include "fediblockhole.fullname" . }}-block-csv
+                name: fediblockhole-block-csv
                 items:
                 - key: {{ .filename | quote }}
                   path: {{ .filename | quote }}
