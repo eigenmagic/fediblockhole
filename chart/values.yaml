@@ -20,7 +20,7 @@ fediblockhole:
   allow_file:
     path: ""
     filename: ""
-  # location of the local blocklist file. Default is /etc/default/blocklist.csv
+  # location of the local blocklist file.
   block_file:
     path: ""
     filename: ""
