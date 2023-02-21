@@ -68,3 +68,25 @@ Create the default conf file path and filename
 {{- define "fediblockhole.conf_file_filename" -}}
 {{- default "fediblockhole.conf.toml" .Values.fediblockhole.conf_file.filename }}
 {{- end }}
+
+{{/*
+Create the default allowlist file path and filename
+*/}}
+{{- define "fediblockhole.allow_file_path" -}}
+{{- default "/etc/default/" .Values.fediblockhole.allow_file.path }}
+{{- end }}
+{{- define "fediblockhole.allow_file_filename" -}}
+{{- default "allowlist.csv" .Values.fediblockhole.allow_file.filename }}
+{{- end }}
+
+{{/*
+Create the blocklist file path and filename
+*/}}
+{{- if .Values.fediblockhole.block_file.path && .Values.fediblockhole.block_file.filename }}
+{{- define "fediblockhole.block_file_path" -}}
+{{- .Values.fediblockhole.block_file.path }}
+{{- end }}
+{{- define "fediblockhole.block_file_filename" -}}
+{{- .Values.fediblockhole.block_file.filename }}
+{{- end }}
+{{- end }}

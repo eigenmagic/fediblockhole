@@ -31,6 +31,12 @@ spec:
               volumeMounts:
                 - name: config
                   mountPath: {{ include "fediblockhole.conf_file_path" . | quote }}
+                - name: allow
+                  mountPath: {{ include "fediblockhole.allow_file_path" . | quote }}
+                {{- with fediblockhole.block_file_path }}
+                - name: block
+                  mountPath: {{ . | quote }}
+                {{ end }}
           volumes:
             - name: config
               configMap:
@@ -38,4 +44,20 @@ spec:
                 items:
                 - key: {{ include "fediblockhole.conf_file_filename" . | quote }}
                   path: {{ include "fediblockhole.conf_file_filename" . | quote }}
+            - name: allow
+              configMap:
+                name: {{ include "fediblockhole.fullname" . }}-allow-csv
+                items:
+                - key: {{ include "fediblockhole.allow_file_filename" . | quote }}
+                  path: {{ include "fediblockhole.allow_file_filename" . | quote }}
+            {{- with fediblockhole.block_file_path }}
+            - name: block
+              configMap:
+                name: {{ include "fediblockhole.fullname" . }}-block-csv
+                {{- with fediblockhole.block_file_filename }}
+                items:
+                - key: {{ . | quote }}
+                  path: {{ . | quote }}
+                {{ end }}
+            {{end }}
 {{- end }}
