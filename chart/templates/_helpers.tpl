@@ -80,11 +80,13 @@ Create the default allowlist file path and filename
 {{- end }}
 
 {{/*
-Create the default blocklist file path and filename
+Create the blocklist file path and filename
 */}}
+{{- if .Values.fediblockhole.block_file.path && .Values.fediblockhole.block_file.filename }}
 {{- define "fediblockhole.block_file_path" -}}
-{{- default "/etc/default/" .Values.fediblockhole.block_file.path }}
+{{- .Values.fediblockhole.block_file.path }}
 {{- end }}
 {{- define "fediblockhole.block_file_filename" -}}
-{{- default "blocklist.csv" .Values.fediblockhole.block_file.filename }}
+{{- .Values.fediblockhole.block_file.filename }}
+{{- end }}
 {{- end }}
