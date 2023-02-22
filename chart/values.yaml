@@ -18,15 +18,11 @@ fediblockhole:
   # Location of a local allowlist file. It is recommended that this file should at a
   # minimum contain the web_domain of your own instance.
   allow_file:
-    # Optionally, set a path other than "/etc/default/"
-    path: ""
     # Optionally, set the name of the file. This should match the data key in the
     # associated ConfigMap
     filename: ""
   # Location of a local blocklist file.
   block_file:
-    # Optionally, set a path other than "/etc/default/"
-    path: ""
     # Optionally, set the name of the file. This should match the data key in the
     # associated ConfigMap
     filename: ""
