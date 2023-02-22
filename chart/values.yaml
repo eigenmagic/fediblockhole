@@ -1,0 +1,77 @@
+image:
+  repository: ghcr.io/cunningpike/fediblockhole
+  # https://github.com/cunningpike/fediblockhole/pkgs/container/fediblockhole/versions
+  #
+  # alternatively, use `latest` for the latest release or `edge` for the image
+  # built from the most recent commit
+  #
+  # tag: latest
+  tag: ""
+  # use `Always` when using `latest` tag
+  pullPolicy: IfNotPresent
+
+fediblockhole:
+  # location of the configuration file. Default is /etc/default/fediblockhole.conf.toml
+  conf_file:
+    path: ""
+    filename: ""
+  # Location of a local allowlist file. It is recommended that this file should at a
+  # minimum contain the web_domain of your own instance.
+  allow_file:
+    # Optionally, set the name of the file. This should match the data key in the
+    # associated ConfigMap
+    filename: ""
+  # Location of a local blocklist file.
+  block_file:
+    # Optionally, set the name of the file. This should match the data key in the
+    # associated ConfigMap
+    filename: ""
+  cron:
+    # -- run `fediblock-sync` every hour
+    sync:
+      # @ignored
+      enabled: false
+      # @ignored
+      schedule: "0 * * * *"
+      failedJobsHistoryLimit: 1
+      successfulJobsHistoryLimit: 3
+
+# if you manually change the UID/GID environment variables, ensure these values
+# match:
+podSecurityContext:
+  runAsUser: 991
+  runAsGroup: 991
+  fsGroup: 991
+
+# @ignored
+securityContext: {}
+
+# -- Kubernetes manages pods for jobs and pods for deployments differently, so you might
+# need to apply different annotations to the two different sets of pods. The annotations
+# set with podAnnotations will be added to all deployment-managed pods.
+podAnnotations: {}
+
+# -- The annotations set with jobAnnotations will be added to all job pods.
+jobAnnotations: {}
+
+# -- Default resources for all Deployments and jobs unless overwritten
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# @ignored
+nodeSelector: {}
+
+# @ignored
+tolerations: []
+
+# -- Affinity for all pods unless overwritten
+affinity: {}
