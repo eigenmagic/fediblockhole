@@ -15,15 +15,17 @@ fediblockhole:
   conf_file:
     path: ""
     filename: ""
-  # location of the local allowlist file. Default is /etc/default/allowlist.csv.
-  # This file should at a minimum contain the web_domain of your own instance.
+  # Location of a local allowlist file. It is recommended that this file should at a
+  # minimum contain the web_domain of your own instance.
   allow_file:
-    path: ""
-    filename: ""
-  # location of the local blocklist file.
-  block_file:
-    path: ""
-    filename: ""
+    # Optionally, uncomment and set a path other than "/etc/default/"
+    # path: ""
+    # Uncomment to set the name of the file
+    filename: "allowlist.csv"
+  # Location of a local blocklist file.
+  # block_file:
+    # path: ""
+    # filename: ""
   cron:
     # -- run `fediblock-sync` every hour
     sync:
