@@ -30,14 +30,17 @@ spec:
                 - "{{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . -}}"
               volumeMounts:
                 - name: config
-                  mountPath: {{ include "fediblockhole.conf_file_path" . | quote }}
-                {{- with .Values.fediblockhole.allow_file.path }}
-                - name: allow
-                  mountPath: {{ . | quote }}
+                  mountPath: "{{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . -}}"
+                  subPath: "{{- include "fediblockhole.conf_file_filename" . -}}"
+                {{ if .Values.fediblockhole.allow_file.filename }}
+                - name: allowfile
+                  mountPath: "{{- include "fediblockhole.conf_file_path" . -}}{{- .Values.fediblockhole.allow_file.filename -}}"
+                  subPath: "{{- .Values.fediblockhole.allow_file.filename -}}"
                 {{ end }}
-                {{- with .Values.fediblockhole.block_file.path }}
-                - name: block
-                  mountPath: {{ . | quote }}
+                {{ if .Values.fediblockhole.block_file.filename }}
+                - name: blockfile
+                  mountPath: "{{- include "fediblockhole.conf_file_path" . -}}{{- .Values.fediblockhole.block_file.filename -}}"
+                  subPath: "{{- .Values.fediblockhole.block_file.filename -}}"
                 {{ end }}
           volumes:
             - name: config
@@ -46,20 +49,20 @@ spec:
                 items:
                 - key: {{ include "fediblockhole.conf_file_filename" . | quote }}
                   path: {{ include "fediblockhole.conf_file_filename" . | quote }}
-            {{- with .Values.fediblockhole.allow_file.filename }}
-            - name: allow
+            {{ if .Values.fediblockhole.allow_file.filename }}
+            - name: allowfile
               configMap:
-                name: fediblockhole-allow-csv
+                name: {{ include "fediblockhole.fullname" . }}-allow-csv
                 items:
-                - key: {{ . | quote }}
-                  path: {{ . | quote }}
+                - key: {{ .Values.fediblockhole.allow_file.filename | quote }}
+                  path: {{ .Values.fediblockhole.allow_file.filename | quote }}
             {{ end }}
-            {{- with .Values.fediblockhole.block_file.filename }}
-            - name: block
+            {{ if .Values.fediblockhole.block_file.filename }}
+            - name: blockfile
               configMap:
-                name: fediblockhole-block-csv
+                name: {{ include "fediblockhole.fullname" . }}-block-csv
                 items:
-                - key: {{ . | quote }}
-                  path: {{ . | quote }}
-            {{end }}
+                - key: {{ .Values.fediblockhole.block_file.filename | quote }}
+                  path: {{ .Values.fediblockhole.block_file.filename | quote }}
+            {{ end }}
 {{- end }}
