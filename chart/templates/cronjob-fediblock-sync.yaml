@@ -1,0 +1,68 @@
+{{ if .Values.fediblockhole.cron.sync.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fediblockhole.fullname" . }}-sync
+  labels:
+    {{- include "fediblockhole.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.fediblockhole.cron.sync.schedule }}
+  failedJobsHistoryLimit: {{ .Values.fediblockhole.cron.sync.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.fediblockhole.cron.sync.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: {{ include "fediblockhole.fullname" . }}-sync
+          {{- with .Values.jobAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: {{ include "fediblockhole.fullname" . }}-sync
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - fediblock-sync
+                - -c
+                - "{{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . -}}"
+              volumeMounts:
+                - name: config
+                  mountPath: "{{- include "fediblockhole.conf_file_path" . -}}{{- include "fediblockhole.conf_file_filename" . -}}"
+                  subPath: "{{- include "fediblockhole.conf_file_filename" . -}}"
+                {{ if .Values.fediblockhole.allow_file.filename }}
+                - name: allowfile
+                  mountPath: "{{- include "fediblockhole.conf_file_path" . -}}{{- .Values.fediblockhole.allow_file.filename -}}"
+                  subPath: "{{- .Values.fediblockhole.allow_file.filename -}}"
+                {{ end }}
+                {{ if .Values.fediblockhole.block_file.filename }}
+                - name: blockfile
+                  mountPath: "{{- include "fediblockhole.conf_file_path" . -}}{{- .Values.fediblockhole.block_file.filename -}}"
+                  subPath: "{{- .Values.fediblockhole.block_file.filename -}}"
+                {{ end }}
+          volumes:
+            - name: config
+              configMap:
+                name: {{ include "fediblockhole.fullname" . }}-conf-toml
+                items:
+                - key: {{ include "fediblockhole.conf_file_filename" . | quote }}
+                  path: {{ include "fediblockhole.conf_file_filename" . | quote }}
+            {{ if .Values.fediblockhole.allow_file.filename }}
+            - name: allowfile
+              configMap:
+                name: {{ include "fediblockhole.fullname" . }}-allow-csv
+                items:
+                - key: {{ .Values.fediblockhole.allow_file.filename | quote }}
+                  path: {{ .Values.fediblockhole.allow_file.filename | quote }}
+            {{ end }}
+            {{ if .Values.fediblockhole.block_file.filename }}
+            - name: blockfile
+              configMap:
+                name: {{ include "fediblockhole.fullname" . }}-block-csv
+                items:
+                - key: {{ .Values.fediblockhole.block_file.filename | quote }}
+                  path: {{ .Values.fediblockhole.block_file.filename | quote }}
+            {{ end }}
+{{- end }}
