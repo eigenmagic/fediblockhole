@@ -6,14 +6,18 @@ The broad design goal for FediBlockHole is to support pulling in a list of
 blocklists from a set of trusted sources, merge them into a combined blocklist,
 and then push that merged list to a set of managed instances.
 
-Inspired by the way PiHole works for maintaining a set of blocklists of adtech
-domains.
-
 Mastodon admins can choose who they think maintain quality lists and subscribe
 to them, helping to distribute the load for maintaining blocklists among a
 community of people. Control ultimately rests with the admins themselves so they
 can outsource as much, or as little, of the effort to others as they deem
 appropriate.
+
+Inspired by the way PiHole works for maintaining a set of blocklists of adtech
+domains. Builds on the work of
+[@CaribenxMarciaX@scholar.social](https://scholar.social/@CaribenxMarciaX) and
+[@gingerrroot@kitty.town](https://kitty.town/@gingerrroot) who started the
+#Fediblock hashtag and did a lot of advocacy around it, often at great personal
+cost.
 
 ## Features
 
