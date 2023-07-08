@@ -6,6 +6,19 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [Unreleased]
 
+## [v0.4.4] - 2023-07-09
+
+### Added
+
+- Added citation for creators of #Fediblock (a64875b)
+- Added parser for Mastodon 4.1 blocklist CSV format (9f95f14)
+- Added container support (76d5b61)
+
+### Fixed
+
+- Use __future__.annotations so type hints work with Python < 2.9 (8265639)
+- test util no longer tries to load default config file if conf tomldata is empty. (2da57b2)
+
 ## [v0.4.3] - 2023-02-13
 
 ### Added
