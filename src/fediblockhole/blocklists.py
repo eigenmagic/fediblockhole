@@ -1,5 +1,6 @@
 """Parse various blocklist data formats
 """
+from __future__ import annotations
 import csv
 import json
 from typing import Iterable

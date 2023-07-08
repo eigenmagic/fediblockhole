@@ -1,5 +1,6 @@
 """ Constant objects used by FediBlockHole
 """
+from __future__ import annotations
 import enum
 from typing import NamedTuple, Optional, TypedDict
 from dataclasses import dataclass
