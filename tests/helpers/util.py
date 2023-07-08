@@ -7,5 +7,6 @@ def shim_argparse(testargv: list=[], tomldata: str=None):
     """
     ap = setup_argparse()
     args = ap.parse_args(testargv)
-    args = augment_args(args, tomldata)
+    if tomldata is not None:
+        args = augment_args(args, tomldata)
     return args
