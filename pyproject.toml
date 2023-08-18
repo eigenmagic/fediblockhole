@@ -1,10 +1,10 @@
 [project]
 name = "fediblockhole"
-version = "0.4.2"
+version = "0.4.4"
 description = "Federated blocklist management for Mastodon"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.10"
+requires-python = ">=3.6"
 keywords = ["mastodon", "fediblock"]
 authors = [ 
     {name = "Justin Warren"}, {email = "justin@eigenmagic.com"}
@@ -17,6 +17,10 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.6",
 ]
 dependencies = [
     "requests",

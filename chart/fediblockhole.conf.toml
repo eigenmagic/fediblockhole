@@ -56,24 +56,6 @@ blocklist_instance_destinations = [
 # The 'min' mergeplan will use the lightest severity block found for a domain.
 # mergeplan = 'max'
 
-## Optional threshold-based merging.
-# Only merge in domain blocks if the domain is mentioned in
-# at least `threshold` blocklists.
-# `merge_thresold` is an integer, with a default value of 0.
-# The `merge_threshold_type` can be `count` or `pct`.
-# If `count` type is selected, the threshold is reached when the domain
-# is mentioned in at least `merge_threshold` blocklists. The default value
-# of 0 means that every block in every list will be merged in.
-# If `pct` type is selected, `merge_threshold` is interpreted as a percentage,
-# i.e. if `merge_threshold` = 20, blocks will only be merged in if the domain
-# is present in at least 20% of blocklists.
-# Percentage calculated as number_of_mentions / total_number_of_blocklists.
-# The percentage method is more flexibile, but also more complicated, so take care
-# when using it.
-# 
-# merge_threshold_type = 'count'
-# merge_threshold = 0
-
 ## Set which fields we import
 ## 'domain' and 'severity' are always imported, these are additional
 ## 

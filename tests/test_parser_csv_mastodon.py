@@ -1,7 +1,7 @@
 """Tests of the CSV parsing
 """
 
-from fediblockhole.blocklists import BlocklistParserCSV, parse_blocklist
+from fediblockhole.blocklists import BlocklistParserMastodonCSV
 from fediblockhole.const import SeverityLevel
 
 
@@ -9,15 +9,15 @@ def test_single_line():
     csvdata = "example.org"
     origin = "csvfile"
 
-    parser = BlocklistParserCSV()
+    parser = BlocklistParserMastodonCSV()
     bl = parser.parse_blocklist(csvdata, origin)
     assert len(bl) == 0
 
 def test_header_only():
-    csvdata = "domain,severity,public_comment"
+    csvdata = "#domain,#severity,#public_comment"
     origin = "csvfile"
 
-    parser = BlocklistParserCSV()
+    parser = BlocklistParserMastodonCSV()
     bl = parser.parse_blocklist(csvdata, origin)
     assert len(bl) == 0
 
@@ -28,7 +28,7 @@ example2.org,suspend
 """
     origin = "csvfile"
 
-    parser = BlocklistParserCSV()
+    parser = BlocklistParserMastodonCSV()
     bl = parser.parse_blocklist(csvdata, origin)
 
     assert len(bl) == 2
@@ -43,7 +43,7 @@ example4.org,suspend,"test 4"
 """
     origin = "csvfile"
 
-    parser = BlocklistParserCSV()
+    parser = BlocklistParserMastodonCSV()
     bl = parser.parse_blocklist(csvdata, origin)
 
     assert len(bl) == 4
@@ -66,7 +66,7 @@ example4.org,suspend,"test 4","also me"
 """
     origin = "csvfile"
 
-    parser = BlocklistParserCSV()
+    parser = BlocklistParserMastodonCSV()
     bl = parser.parse_blocklist(csvdata, origin)
 
     assert len(bl) == 4

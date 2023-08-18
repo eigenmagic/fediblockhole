@@ -6,7 +6,36 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [Unreleased]
 
-- Planning to add allowlist thresholds as noted in #28
+## [v0.4.4] - 2023-07-09
+
+### Added
+
+- Added citation for creators of #Fediblock (a64875b)
+- Added parser for Mastodon 4.1 blocklist CSV format (9f95f14)
+- Added container support (76d5b61)
+
+### Fixed
+
+- Use __future__.annotations so type hints work with Python < 2.9 (8265639)
+- test util no longer tries to load default config file if conf tomldata is empty. (2da57b2)
+
+## [v0.4.3] - 2023-02-13
+
+### Added
+
+- Added Mastodon public API parser type because #33 (9fe9342)
+- Added ability to set scheme when talking to instances (9fe9342)
+- Added tests of comment merging. (fb3a7ec)
+- Added blocklist thresholds. (bb1d89e)
+- Added logging to help debug threshold-based merging. (b67ff0c)
+- Added extra documentation on configuring thresholds. (6c72af8)
+- Updated documentation to reflect Mastodon v4.1.0 changes to the application scopes screen. (b92dd21)
+
+### Changed
+
+- Dropped minimum Python version to 3.6 (df3c16f)
+- Don't merge comments if new comment is empty. (b8aa11e)
+- Tweaked comment merging to pass tests. (fb3a7ec)
 
 ## [v0.4.2] - 2023-01-19
 

@@ -6,14 +6,18 @@ The broad design goal for FediBlockHole is to support pulling in a list of
 blocklists from a set of trusted sources, merge them into a combined blocklist,
 and then push that merged list to a set of managed instances.
 
-Inspired by the way PiHole works for maintaining a set of blocklists of adtech
-domains.
-
 Mastodon admins can choose who they think maintain quality lists and subscribe
 to them, helping to distribute the load for maintaining blocklists among a
 community of people. Control ultimately rests with the admins themselves so they
 can outsource as much, or as little, of the effort to others as they deem
 appropriate.
+
+Inspired by the way PiHole works for maintaining a set of blocklists of adtech
+domains. Builds on the work of
+[@CaribenxMarciaX@scholar.social](https://scholar.social/@CaribenxMarciaX) and
+[@gingerrroot@kitty.town](https://kitty.town/@gingerrroot) who started the
+#Fediblock hashtag and did a lot of advocacy around it, often at great personal
+cost.
 
 ## Features
 
@@ -41,6 +45,8 @@ appropriate.
 
  - Provides (hopefully) sensible defaults to minimise first-time setup.
  - Global and fine-grained configuration options available for those complex situations that crop up sometimes.
+ - Allowlists to override blocks in blocklists to ensure you never block instances you want to keep.
+ - Blocklist thresholds if you want to only block when an instance shows up in multiple blocklists.
 
 ## Installing
 
@@ -79,17 +85,16 @@ admin to add a new Application at
 `https://<instance-domain>/settings/applications/` and then tell you the access
 token.
 
-The application needs the `admin:read:domain_blocks` OAuth scope, but
-unfortunately this scope isn't available in the current application screen
-(v4.0.2 of Mastodon at time of writing, but this has been fixed in the main
-branch). 
+The application needs the `admin:read:domain_blocks` OAuth scope. You can allow
+full `admin:read` access, but be aware that this authorizes someone to read all
+the data in the instance. That's asking a lot of a remote instance admin who
+just wants to share domain_blocks with you.
 
-You can allow full `admin:read` access, but be aware that this authorizes
-someone to read all the data in the instance. That's asking a lot of a remote
-instance admin who just wants to share domain_blocks with you.
+The `admin:read:domain_blocks` scope is available as of Mastodon v4.1.0, but for
+earlier versions admins will need to use the manual method described below.
 
-For now, you can ask the instance admin to update the scope in the database
-directly like this:
+You can update the scope for your application in the database directly like
+this:
 
 ```
 UPDATE oauth_applications as app
@@ -134,8 +139,12 @@ chmod o-r <configfile>
 ```
 
 You can also grant full `admin:write` scope to the application, but if you'd
-prefer to keep things more tightly secured you'll need to use SQL to set the
-scopes in the database and then regenerate the token:
+prefer to keep things more tightly secured, limit the scope to
+`admin:read:domain_blocks`.
+
+Again, this scope is only available in the application config screen as of
+Mastodon v4.1.0. If your instance is on an earlier version, you'll need to use
+SQL to set the scopes in the database and then regenerate the token:
 
 ```
 UPDATE oauth_applications as app
@@ -192,6 +201,7 @@ Supported formats are currently:
 
  - Comma-Separated Values (CSV)
  - JSON
+ - Mastodon v4.1 flavoured CSV
  - RapidBlock CSV
  - RapidBlock JSON
 
@@ -208,6 +218,17 @@ Optional fields that the tool understands are `public_comment`, `private_comment
 A CSV format blocklist must contain a header row with at least a `domain` and `severity` field.
 
 Optional fields, as listed about, may also be included.
+
+#### Mastodon v4.1 CSV format
+
+As of v4.1.0, Mastodon can export domain blocks as a CSV file. However, in their
+infinite wisdom, the Mastodon devs decided that field names should begin with a
+`#` character in the header, unlike the field names in the JSON output via the
+API… or in pretty much any other CSV file anywhere else.
+
+Setting the format to `mastodon_csv` will strip off the `#` character when
+parsing and FediBlockHole can then use Mastodon v4.1 CSV blocklists like any
+other CSV formatted blocklist.
 
 #### JSON format
 
