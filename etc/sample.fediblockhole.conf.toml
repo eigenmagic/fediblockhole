@@ -42,6 +42,9 @@ blocklist_instance_destinations = [
 ## File to save the fully merged blocklist into
 # blocklist_savefile = '/tmp/merged_blocklist.csv'
 
+## File to save the audit log of counts across sources
+# blocklist_auditfile = '/tmp/domain_counts_list.csv'
+
 ## Don't push blocklist to instances, even if they're defined above
 # no_push_instance = false
 
