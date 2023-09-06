@@ -184,7 +184,7 @@ def fetch_from_instances(sources: dict,
 def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max',
     threshold: int=0,
     threshold_type: str='count',
-    save_block_audit_file: str='') -> Blocklist:
+    save_block_audit_file: str=None) -> Blocklist:
     """Merge fetched remote blocklists into a bulk update
     @param blocklists: A dict of lists of DomainBlocks, keyed by source.
         Each value is a list of DomainBlocks
@@ -242,7 +242,7 @@ def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max',
                 block = apply_mergeplan(block, newblock, mergeplan)
             merged.blocks[block.domain] = block
 
-        if len(save_block_audit_file) > 0:
+        if save_block_audit_file:
             blockdata:BlockAudit = {
                 'domain': domain,
                 'count': domain_matches_count, 
@@ -250,7 +250,7 @@ def merge_blocklists(blocklists: list[Blocklist], mergeplan: str='max',
             }
             audit.blocks[domain] = blockdata
 
-    if len(save_block_audit_file) > 0:
+    if save_block_audit_file:
         log.info(f"Saving audit file to {save_block_audit_file}")
         save_domain_block_audit_to_file(audit, save_block_audit_file)
 
@@ -746,7 +746,7 @@ def augment_args(args, tomldata: str=None):
         args.savedir = conf.get('savedir', '/tmp')
 
     if not args.blocklist_auditfile:
-        args.blocklist_auditfile = conf.get('blocklist_auditfile', '')
+        args.blocklist_auditfile = conf.get('blocklist_auditfile', None)
 
     if not args.export_fields:
         args.export_fields = conf.get('export_fields', [])
