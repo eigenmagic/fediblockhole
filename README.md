@@ -363,6 +363,11 @@ The filename is based on the URL or domain used so you can tell where each list 
 
 Sets where to save intermediate blocklist files. Defaults to `/tmp`.
 
+### blocklist_auditfile
+
+If provided, will save an audit file of counts and percentages by domain. Useful for debugging 
+thresholds. Defaults to None.
+
 ### no_push_instance
 
 Defaults to False.

@@ -6,7 +6,7 @@ import json
 from typing import Iterable
 from dataclasses import dataclass, field
 
-from .const import DomainBlock, BlockSeverity
+from .const import DomainBlock, BlockSeverity, BlockAudit
 
 import logging
 log = logging.getLogger('fediblockhole')
@@ -25,6 +25,33 @@ class Blocklist:
 
     def __class_getitem__(cls, item):
         return dict[str, DomainBlock]
+
+    def __getitem__(self, item):
+        return self.blocks[item]
+
+    def __iter__(self):
+        return self.blocks.__iter__()
+
+    def items(self):
+        return self.blocks.items()
+
+    def values(self):
+        return self.blocks.values()
+
+@dataclass   
+class BlockAuditList:
+    """ A BlockAuditlist object
+
+    A BlockAuditlist is a list of BlockAudits from an origin
+    """
+    origin: str = None
+    blocks: dict[str, BlockAudit] = field(default_factory=dict)
+
+    def __len__(self):
+        return len(self.blocks)
+
+    def __class_getitem__(cls, item):
+        return dict[str, BlockAudit]
 
     def __getitem__(self, item):
         return self.blocks[item]

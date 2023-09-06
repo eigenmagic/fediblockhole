@@ -84,6 +84,81 @@ class BlockSeverity(object):
     def __ge__(self, other):
         if self._level >= other._level:
             return True
+        
+class BlockAudit(object):
+
+    fields = [
+        'domain',
+        'count',
+        'percent',
+    ]
+
+    all_fields = [
+        'domain',
+        'count',
+        'percent',
+        'id'
+    ]
+
+    def __init__(self, domain:str,
+            count: int=0,
+            percent: int=0,
+            id: int=None):
+        """Initialize the BlockAudit
+        """        
+        self.domain = domain
+        self.count = count
+        self.percent = percent
+        self.id = id
+
+    def _asdict(self):
+        """Return a dict version of this object
+        """
+        dictval = {
+            'domain': self.domain,
+            'count': self.count,
+            'percent': self.percent,
+        }
+        if self.id:
+            dictval['id'] = self.id
+
+        return dictval
+
+    def __repr__(self):
+
+        return f"<BlockAudit {self._asdict()}>"
+
+    def copy(self):
+        """Make a copy of this object and return it
+        """
+        retval = BlockAudit(**self._asdict())
+        return retval
+
+    def update(self, dict):
+        """Update my kwargs
+        """
+        for key in dict:
+            setattr(self, key, dict[key])
+
+    def __iter__(self):
+        """Be iterable"""
+        keys = self.fields
+
+        if getattr(self, 'id', False):
+            keys.append('id')
+
+        for k in keys:
+            yield k
+
+    def __getitem__(self, k, default=None):
+        "Behave like a dict for getting values"
+        if k not in self.all_fields:
+            raise KeyError(f"Invalid key '{k}'")
+
+        return getattr(self, k, default)
+
+    def get(self, k, default=None):
+        return self.__getitem__(k, default)
 
 # class _DomainBlock(NamedTuple):
 #     domain: str # FIXME: Use an actual Domain object from somewhere?
