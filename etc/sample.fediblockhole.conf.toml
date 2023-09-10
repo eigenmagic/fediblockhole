@@ -77,6 +77,9 @@ blocklist_instance_destinations = [
 # merge_threshold_type = 'count'
 # merge_threshold = 0
 
+## set an override private comment
+# override_private_comment = 'Updated by Fediblockhole'
+
 ## Set which fields we import
 ## 'domain' and 'severity' are always imported, these are additional
 ## 
