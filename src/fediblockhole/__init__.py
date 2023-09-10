@@ -576,8 +576,6 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
     # Force use of the admin API, and add 'id' to the list of fields
     if 'id' not in import_fields:
         import_fields.append('id')
-    if override_private_comment:
-        import_fields.append('private_comment')
     serverblocks = fetch_instance_blocklist(host, token, True, import_fields, scheme)
 
     # # Convert serverblocks to a dictionary keyed by domain name
