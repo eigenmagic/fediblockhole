@@ -625,14 +625,14 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
                 pass
 
         else:
+            # stamp this record with a private comment, since we're the ones adding it
+            if override_private_comment:
+                newblock.private_comment = override_private_comment
+                
             # This is a new block for the target instance, so we
             # need to add a block rather than update an existing one
             log.info(f"Adding new block: {newblock}...")
             log.debug(f"Block as dict: {newblock._asdict()}")
-
-             # stamp this record with a private comment, since we're the ones adding it
-            if override_private_comment:
-                newblock.private_comment = override_private_comment
 
             # Make sure the new block doesn't clobber a domain with followers
             newblock.severity = check_followed_severity(host, token, newblock.domain, newblock.severity, max_followed_severity, scheme)
