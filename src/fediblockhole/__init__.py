@@ -628,7 +628,7 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
             # stamp this record with a private comment, since we're the ones adding it
             if override_private_comment:
                 newblock.private_comment = override_private_comment
-                
+
             # This is a new block for the target instance, so we
             # need to add a block rather than update an existing one
             log.info(f"Adding new block: {newblock}...")
@@ -642,6 +642,9 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
                 time.sleep(API_CALL_DELAY)
             else:
                 log.info("Dry run selected. Not adding block.")
+
+    for block in serverblocks:
+        log.debug(f"Checking block: {block}")
 
 def load_config(configfile: str):
     """Augment commandline arguments with config file parameters
