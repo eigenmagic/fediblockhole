@@ -581,6 +581,10 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
     # # Convert serverblocks to a dictionary keyed by domain name
     # knownblocks = {row.domain: row for row in serverblocks}
 
+    log.debug(f"Checking server blocks: {serverblocks}")
+    for block in serverblocks:
+        log.debug(f"Checking block: {block}")
+
     for newblock in blocklist.values():
 
         log.debug(f"Processing block: {newblock}")
@@ -642,10 +646,6 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
                 time.sleep(API_CALL_DELAY)
             else:
                 log.info("Dry run selected. Not adding block.")
-
-    log.debug(f"Checking server blocks: {serverblocks}")
-    for block in serverblocks:
-        log.debug(f"Checking block: {block}")
 
 def load_config(configfile: str):
     """Augment commandline arguments with config file parameters
