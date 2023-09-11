@@ -643,6 +643,7 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
             else:
                 log.info("Dry run selected. Not adding block.")
 
+    log.debug(f"Checking server blocks: {serverblocks}")
     for block in serverblocks:
         log.debug(f"Checking block: {block}")
 
