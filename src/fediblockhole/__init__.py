@@ -402,9 +402,6 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
     link = True
     while link:
         response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
-        if response.status_code == 401:
-            log.error(f"Cannot fetch remote blocklist. Access token has been revoked for {host}, skipping....")
-            break
         if response.status_code != 200:
             log.error(f"Cannot fetch remote blocklist: {response.content}")
             raise ValueError("Unable to fetch domain block list: %s", response)
@@ -485,8 +482,7 @@ def fetch_instance_follows(token: str, host: str, domain: str, scheme: str='http
         if response.status_code == 403:
             log.error(f"Cannot fetch follow information for {domain} from {host}: {response.content}")
 
-        if response.status_code != 401:
-            raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
+        raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
 
     # Get the total returned
     follows = int(response.json()[0]['total'])
@@ -554,9 +550,6 @@ def add_block(token: str, host: str, blockdata: DomainBlock, scheme: str='https'
         # A stricter block already exists. Probably for the base domain.
         err = json.loads(response.content)
         log.warning(err['error'])
-
-    elif response.status_code == 401:
-        log.warning(f"Access token has been revoked for {host}, no blocks being updated.")
 
     elif response.status_code != 200:
             
