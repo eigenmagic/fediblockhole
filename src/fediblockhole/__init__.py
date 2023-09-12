@@ -554,6 +554,9 @@ def add_block(token: str, host: str, blockdata: DomainBlock, scheme: str='https'
         err = json.loads(response.content)
         log.warning(err['error'])
 
+    elif response.status_code == 401:
+        log.warning(f"Access token has been revoked for {host}, no blocks being updated.")
+
     elif response.status_code != 200:
             
         raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
