@@ -402,6 +402,9 @@ def fetch_instance_blocklist(host: str, token: str=None, admin: bool=False,
     link = True
     while link:
         response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
+        if response.status_code == 401:
+            log.error(f"Cannot fetch remote blocklist. Access token has been revoked for {host}, skipping....")
+            break
         if response.status_code != 200:
             log.error(f"Cannot fetch remote blocklist: {response.content}")
             raise ValueError("Unable to fetch domain block list: %s", response)
