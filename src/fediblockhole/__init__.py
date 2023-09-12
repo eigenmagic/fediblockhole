@@ -581,10 +581,6 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
     # # Convert serverblocks to a dictionary keyed by domain name
     # knownblocks = {row.domain: row for row in serverblocks}
 
-    log.debug(f"Checking server blocks: {serverblocks}")
-    for block in serverblocks:
-        log.debug(f"Checking block: {block}")
-
     for newblock in blocklist.values():
 
         log.debug(f"Processing block: {newblock}")
