@@ -485,7 +485,8 @@ def fetch_instance_follows(token: str, host: str, domain: str, scheme: str='http
         if response.status_code == 403:
             log.error(f"Cannot fetch follow information for {domain} from {host}: {response.content}")
 
-        raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
+        if response.status_code != 401:
+            raise ValueError(f"Something went wrong: {response.status_code}: {response.content}")
 
     # Get the total returned
     follows = int(response.json()[0]['total'])
