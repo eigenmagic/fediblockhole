@@ -90,7 +90,7 @@ def sync_blocklists(conf: argparse.Namespace):
             token = dest['token']
             scheme = dest.get('scheme', 'https')
             max_followed_severity = BlockSeverity(dest.get('max_followed_severity', 'silence'))
-            push_blocklist(token, target, merged, conf.dryrun, import_fields, max_followed_severity, scheme)
+            push_blocklist(token, target, merged, conf.dryrun, import_fields, max_followed_severity, scheme, conf.override_private_comment)
 
 def apply_allowlists(merged: Blocklist, conf: argparse.Namespace, allowlists: dict):
     """Apply allowlists
@@ -560,6 +560,7 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
                     import_fields: list=['domain', 'severity'],
                     max_followed_severity:BlockSeverity=BlockSeverity('silence'),
                     scheme: str='https',
+                    override_private_comment: str=None
                     ):
     """Push a blocklist to a remote instance.
     
@@ -624,6 +625,10 @@ def push_blocklist(token: str, host: str, blocklist: list[DomainBlock],
                 pass
 
         else:
+            # stamp this record with a private comment, since we're the ones adding it
+            if override_private_comment:
+                newblock.private_comment = override_private_comment
+
             # This is a new block for the target instance, so we
             # need to add a block rather than update an existing one
             log.info(f"Adding new block: {newblock}...")
@@ -741,6 +746,9 @@ def augment_args(args, tomldata: str=None):
 
     if not args.save_intermediate:
         args.save_intermediate = conf.get('save_intermediate', False)
+
+    if not args.override_private_comment:
+        args.override_private_comment = conf.get('override_private_comment', None)
     
     if not args.savedir:
         args.savedir = conf.get('savedir', '/tmp')
@@ -787,6 +795,7 @@ def setup_argparse():
     ap.add_argument('-b', '--block-audit-file', dest="blocklist_auditfile", help="Save blocklist auditfile to this location.")
     ap.add_argument('--merge-threshold', type=int, help="Merge threshold value")
     ap.add_argument('--merge-threshold-type', choices=['count', 'pct'], help="Type of merge threshold to use.")
+    ap.add_argument('--override-private-comment', dest='override_private_comment', help="Override private_comment with this string for new blocks when pushing blocklists.")
 
     ap.add_argument('-I', '--import-field', dest='import_fields', action='append', help="Extra blocklist fields to import.")
     ap.add_argument('-E', '--export-field', dest='export_fields', action='append', help="Extra blocklist fields to export.")

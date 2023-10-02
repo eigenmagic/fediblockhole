@@ -386,6 +386,14 @@ Skip the fetching of blocklists from any URLs that are configured.
 
 Skip the fetching of blocklists from any remote instances that are configured.
 
+### override_private_comment
+
+Defaults to None.
+
+Stamp all *new* blocks pushed to a remote server with this comment or code. 
+Helps to identify blocks you've created on a server via Fediblockhole versus ones that
+already existed.
+
 ### mergeplan
 
 If two (or more) blocklists define blocks for the same domain, but they're
