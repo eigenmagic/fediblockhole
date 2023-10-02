@@ -795,7 +795,7 @@ def setup_argparse():
     ap.add_argument('-b', '--block-audit-file', dest="blocklist_auditfile", help="Save blocklist auditfile to this location.")
     ap.add_argument('--merge-threshold', type=int, help="Merge threshold value")
     ap.add_argument('--merge-threshold-type', choices=['count', 'pct'], help="Type of merge threshold to use.")
-    ap.add_argument('--override-private-comment', dest='override_private_comment', help="Enforces a private comment for all blocks.")
+    ap.add_argument('--override-private-comment', dest='override_private_comment', help="Override private_comment with this string for new blocks when pushing blocklists.")
 
     ap.add_argument('-I', '--import-field', dest='import_fields', action='append', help="Extra blocklist fields to import.")
     ap.add_argument('-E', '--export-field', dest='export_fields', action='append', help="Extra blocklist fields to export.")

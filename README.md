@@ -391,7 +391,7 @@ Skip the fetching of blocklists from any remote instances that are configured.
 Defaults to None.
 
 Stamp all *new* blocks pushed to a remote server with this comment or code. 
-Helps to identify blocks you've created on a server via this process versus ones that
+Helps to identify blocks you've created on a server via Fediblockhole versus ones that
 already existed.
 
 ### mergeplan
