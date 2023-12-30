@@ -6,6 +6,13 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [Unreleased]
 
+## [v0.4.5] - 2023-12-30
+
+### Added
+
+- Added `override_private_comment` option for annotation of automated blocks (4d12bac)
+- Added blocklist audit file option to debug and track blocklist operations (9200fc3)
+
 ## [v0.4.4] - 2023-07-09
 
 ### Added

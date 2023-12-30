@@ -1,6 +1,6 @@
 [project]
 name = "fediblockhole"
-version = "0.4.4"
+version = "0.4.5"
 description = "Federated blocklist management for Mastodon"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -10,7 +10,7 @@ authors = [
     {name = "Justin Warren"}, {email = "justin@eigenmagic.com"}
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
     "License :: OSI Approved :: GNU Affero General Public License v3",
