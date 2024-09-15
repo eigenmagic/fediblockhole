@@ -1,5 +1,8 @@
 """Test the config file is loading parameters correctly
 """
+from textwrap import dedent
+from unittest.mock import patch
+
 from util import shim_argparse
 from fediblockhole import setup_argparse, augment_args
 
@@ -79,3 +82,30 @@ merge_threshold = 35
     assert args.mergeplan == 'max'
     assert args.merge_threshold_type == 'pct'
     assert args.merge_threshold == 35
+
+def test_destination_token_from_environment():
+    tomldata = dedent("""\
+    blocklist_instance_destinations = [
+      { domain='example.com', token='raw-token'},
+      { domain='example2.com', token='$ENV:TOKEN_ENV_VAR' },
+    ]
+    """)
+
+    with patch.dict('os.environ', {'TOKEN_ENV_VAR': 'env-token'}):
+        args = shim_argparse([], tomldata)
+    assert args.blocklist_instance_destinations[0]['token'] == 'raw-token'
+    assert args.blocklist_instance_destinations[1]['token'] == 'env-token'
+
+
+def test_instance_sources_token_from_environment():
+    tomldata = dedent("""\
+    blocklist_instance_sources = [
+      { domain='example.com', token='raw-token'},
+      { domain='example2.com', token='$ENV:TOKEN_ENV_VAR' },
+    ]
+    """)
+
+    with patch.dict('os.environ', {'TOKEN_ENV_VAR': 'env-token'}):
+        args = shim_argparse([], tomldata)
+    assert args.blocklist_instance_sources[0]['token'] == 'raw-token'
+    assert args.blocklist_instance_sources[1]['token'] == 'env-token'

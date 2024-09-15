@@ -721,6 +721,22 @@ def save_domain_block_audit_to_file(
         for key, value in sorted_list:
             writer.writerow(value)
 
+def resolve_replacements(endpoints: list[dict]) -> list[dict]:
+    """Resolve any replacement tokens in the list of endpoints"""
+    resolved = []
+    for item in endpoints:
+        item = dict(**item)
+        if 'token' in item and item['token'].startswith('$ENV:'):
+            envvar = item['token'][5:]
+            value = os.getenv(envvar)
+            if value is None:
+                raise ValueError(f"Environment variable '{envvar}' not set.")
+
+            item['token'] = value
+
+        resolved.append(item)
+    return resolved
+
 def augment_args(args, tomldata: str=None):
     """Augment commandline arguments with config file parameters
     
@@ -772,9 +788,9 @@ def augment_args(args, tomldata: str=None):
         args.merge_threshold_type = conf.get('merge_threshold_type', 'count')
 
     args.blocklist_url_sources = conf.get('blocklist_url_sources', [])
-    args.blocklist_instance_sources = conf.get('blocklist_instance_sources', [])
+    args.blocklist_instance_sources = resolve_replacements(conf.get('blocklist_instance_sources', []))
     args.allowlist_url_sources = conf.get('allowlist_url_sources', [])
-    args.blocklist_instance_destinations = conf.get('blocklist_instance_destinations', [])
+    args.blocklist_instance_destinations = resolve_replacements(conf.get('blocklist_instance_destinations', []))
 
     return args
 
