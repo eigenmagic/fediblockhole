@@ -288,7 +288,10 @@ Configure the list of instances you want to push your blocklist to in the
 { domain = '<domain_name>', token = '<BearerToken>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
 ```
 
-The fields `domain` and `token` are required. 
+The fields `domain` and `token` are required. The `token` field can either be 
+directly included in the file (which is not recommended) or it can be in your 
+enviromnent, and referenced using the syntax `$ENV:<ENV_VAR>`, which will insert 
+the contents of `ENV_VAR` at that point.
 
 The fields `max_followed_severity` and `import_fields` are optional.
 
