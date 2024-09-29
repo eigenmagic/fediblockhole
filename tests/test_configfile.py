@@ -87,25 +87,41 @@ def test_destination_token_from_environment():
     tomldata = dedent("""\
     blocklist_instance_destinations = [
       { domain='example.com', token='raw-token'},
-      { domain='example2.com', token='$ENV:TOKEN_ENV_VAR' },
+      { domain='example2.com', token_env_var='TOKEN_ENV_VAR' },
+      { domain='env-token.com' },
+      { domain='www.env-token.com' },
     ]
     """)
 
-    with patch.dict('os.environ', {'TOKEN_ENV_VAR': 'env-token'}):
+    with patch.dict('os.environ', {
+            'TOKEN_ENV_VAR': 'env-token',
+            'ENV-TOKEN_COM_TOKEN': 'env-token',
+            'WWW_ENV-TOKEN_COM_TOKEN': 'www-env-token',
+    }):
         args = shim_argparse([], tomldata)
     assert args.blocklist_instance_destinations[0]['token'] == 'raw-token'
     assert args.blocklist_instance_destinations[1]['token'] == 'env-token'
+    assert args.blocklist_instance_destinations[2]['token'] == 'env-token'
+    assert args.blocklist_instance_destinations[3]['token'] == 'www-env-token'
 
 
 def test_instance_sources_token_from_environment():
     tomldata = dedent("""\
     blocklist_instance_sources = [
       { domain='example.com', token='raw-token'},
-      { domain='example2.com', token='$ENV:TOKEN_ENV_VAR' },
+      { domain='example2.com', token_env_var='TOKEN_ENV_VAR' },
+      { domain='env-token.com' },
+      { domain='www.env-token.com' },
     ]
     """)
 
-    with patch.dict('os.environ', {'TOKEN_ENV_VAR': 'env-token'}):
+    with patch.dict('os.environ', {
+            'TOKEN_ENV_VAR': 'env-token',
+            'ENV-TOKEN_COM_TOKEN': 'env-token',
+            'WWW_ENV-TOKEN_COM_TOKEN': 'www-env-token',
+    }):
         args = shim_argparse([], tomldata)
     assert args.blocklist_instance_sources[0]['token'] == 'raw-token'
     assert args.blocklist_instance_sources[1]['token'] == 'env-token'
+    assert args.blocklist_instance_sources[2]['token'] == 'env-token'
+    assert args.blocklist_instance_sources[3]['token'] == 'www-env-token'

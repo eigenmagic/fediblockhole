@@ -44,5 +44,5 @@ addopts = [
 
 [tool.uv]
 dev-dependencies = [
-    "pytest>=7.0.1",
+    "pytest~=8.3",
 ]

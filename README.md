@@ -288,10 +288,23 @@ Configure the list of instances you want to push your blocklist to in the
 { domain = '<domain_name>', token = '<BearerToken>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
 ```
 
-The fields `domain` and `token` are required. The `token` field can either be 
-directly included in the file (which is not recommended) or it can be in your 
-enviromnent, and referenced using the syntax `$ENV:<ENV_VAR>`, which will insert 
-the contents of `ENV_VAR` at that point.
+The `domain` field is required. 
+
+One of the three token sources are required:
+
+* directly specifying a `token` field in the item:
+
+    ```toml
+    { domain = '<domain_name>', token = '<BearerToken>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
+    ```
+
+* specifying a `token_env_var` in the item, which contains the value of the token:
+
+    ```toml
+    { domain = '<domain_name>', token_env_var = 'BEARER_TOKEN_ENV_VAR', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
+    ```
+
+* Setting a standardized domain name environment variable based on the value of the `domain` key. The environment variable must be the domain, converted to uppercase, with all `.` characters replaced by `_`, then suffixed by `_TOKEN`. If the domain is `example.com` then fediblockhole will look for `EXAMPLE_COM_TOKEN` in the environment. 
 
 The fields `max_followed_severity` and `import_fields` are optional.
 

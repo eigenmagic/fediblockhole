@@ -726,13 +726,31 @@ def resolve_replacements(endpoints: list[dict]) -> list[dict]:
     resolved = []
     for item in endpoints:
         item = dict(**item)
-        if 'token' in item and item['token'].startswith('$ENV:'):
-            envvar = item['token'][5:]
-            value = os.getenv(envvar)
+        if 'token' in item and 'token_env_var' in item:
+            log.warning(f"Both `token` and `token_env_var` have been provided; using the explicit token for {item.get("domain", "the entry")}")
+            # we take the token that's explicitly stated, even if there's also an environment
+            # variable set. Delete the token_env_var key
+            del item['token_env_var']
+
+        elif 'token' in item:
+            ...
+
+        elif 'token_env_var' in item:
+            value = os.getenv(item['token_env_var'])
             if value is None:
-                raise ValueError(f"Environment variable '{envvar}' not set.")
+                raise ValueError(f"Environment variable '{item["token_env_var"]}' not set.")
 
             item['token'] = value
+
+        else:
+            # lastly, try look for a default token.
+            domain = item.get("domain")
+            if domain is not None:
+                domain_env_var_prefix = domain.upper().replace(".", "_")
+                domain_env_var = f"{domain_env_var_prefix}_TOKEN"
+                value = os.environ.get(domain_env_var)
+                if value is not None:
+                    item['token'] = value
 
         resolved.append(item)
     return resolved
