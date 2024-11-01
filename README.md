@@ -272,6 +272,12 @@ you want to read domain blocks from.
 The `token` is an optional OAuth token for the application that's configured in
 the instance to allow you to read domain blocks, as discussed above.
 
+The `token` can also be specified using environment variables. This provides
+improved security compared to storing the OAuth token in a configuration file,
+but it will require the environment variable to be set so that FediBlockHole can
+access it. See below in [Instance destinations](#instance-destinations) for more
+detail on how to use environment variables to provide authentication tokens.
+
 `admin` is an optional field that tells the tool to use the more detailed admin
 API endpoint for domain_blocks, rather than the more public API endpoint that
 doesn't provide as much detail. You will need a `token` that's been configured to
