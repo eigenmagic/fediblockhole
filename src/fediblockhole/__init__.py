@@ -818,6 +818,49 @@ def save_blocklist_to_file(
             writer.writerow(value)
 
 
+def resolve_replacements(endpoints: list[dict]) -> list[dict]:
+    """Resolve any replacement tokens in the list of endpoints"""
+
+    resolved = []
+    for item in endpoints:
+        item = dict(**item)
+        if "token" in item and "token_env_var" in item:
+            log.warning(
+                f"Both `token` and `token_env_var` have been provided; using"
+                f" the explicit token for {item.get('domain', 'the entry')}"
+            )
+
+            # We take the token that's explicitly stated,
+            # even if there's also an environment variable set.
+            # Delete the token_env_var key
+            del item["token_env_var"]
+
+        elif "token" in item:
+            pass
+
+        elif "token_env_var" in item:
+            value = os.getenv(item["token_env_var"])
+            if value is None:
+                raise ValueError(
+                    f"Environment variable" f" '{item['token_env_var']}' not set."
+                )
+
+            item["token"] = value
+
+        else:
+            # lastly, try look for a default token.
+            domain = item.get("domain")
+            if domain is not None:
+                domain_env_var_prefix = domain.upper().replace(".", "_")
+                domain_env_var = f"{domain_env_var_prefix}_TOKEN"
+                value = os.getenv(domain_env_var)
+                if value is not None:
+                    item["token"] = value
+
+        resolved.append(item)
+    return resolved
+
+
 def save_domain_block_audit_to_file(blocklist: BlockAuditList, filepath: str):
     """Save an audit log of domains blocked
 
@@ -897,10 +940,12 @@ def augment_args(args, tomldata: str = None):
         args.merge_threshold_type = conf.get("merge_threshold_type", "count")
 
     args.blocklist_url_sources = conf.get("blocklist_url_sources", [])
-    args.blocklist_instance_sources = conf.get("blocklist_instance_sources", [])
+    args.blocklist_instance_sources = resolve_replacements(
+        conf.get("blocklist_instance_sources", [])
+    )
     args.allowlist_url_sources = conf.get("allowlist_url_sources", [])
-    args.blocklist_instance_destinations = conf.get(
-        "blocklist_instance_destinations", []
+    args.blocklist_instance_destinations = resolve_replacements(
+        conf.get("blocklist_instance_destinations", [])
     )
 
     return args
