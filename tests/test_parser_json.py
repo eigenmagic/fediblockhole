@@ -4,19 +4,11 @@
 from fediblockhole.blocklists import BlocklistParserJSON
 from fediblockhole.const import SeverityLevel
 
-datafile = "data-mastodon.json"
 
+def test_json_parser(data_mastodon_json):
 
-def load_data():
-    with open(datafile) as fp:
-        return fp.read()
-
-
-def test_json_parser():
-
-    data = load_data()
     parser = BlocklistParserJSON()
-    bl = parser.parse_blocklist(data, "test_json")
+    bl = parser.parse_blocklist(data_mastodon_json, "test_json")
 
     assert len(bl) == 10
     assert "example.org" in bl
@@ -30,11 +22,10 @@ def test_json_parser():
     assert bl["example4.org"].severity.level == SeverityLevel.NONE
 
 
-def test_ignore_comments():
+def test_ignore_comments(data_mastodon_json):
 
-    data = load_data()
     parser = BlocklistParserJSON()
-    bl = parser.parse_blocklist(data, "test_json")
+    bl = parser.parse_blocklist(data_mastodon_json, "test_json")
 
     assert len(bl) == 10
     assert "example.org" in bl

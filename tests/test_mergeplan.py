@@ -5,10 +5,6 @@ from fediblockhole import apply_mergeplan, merge_blocklists, merge_comments
 from fediblockhole.blocklists import parse_blocklist
 from fediblockhole.const import DomainBlock, SeverityLevel
 
-datafile01 = "data-suspends-01.csv"
-datafile02 = "data-silences-01.csv"
-datafile03 = "data-noop-01.csv"
-
 import_fields = [
     "domain",
     "severity",
@@ -24,18 +20,16 @@ def load_test_blocklist_data(datafiles):
 
     blocklists = []
 
-    for df in datafiles:
-        with open(df) as fp:
-            data = fp.read()
-            bl = parse_blocklist(data, df, "csv", import_fields)
-            blocklists.append(bl)
+    for data in datafiles:
+        bl = parse_blocklist(data, "pytest", "csv", import_fields)
+        blocklists.append(bl)
 
     return blocklists
 
 
-def test_mergeplan_max():
+def test_mergeplan_max(data_suspends_01, data_silences_01):
     """Test 'max' mergeplan"""
-    blocklists = load_test_blocklist_data([datafile01, datafile02])
+    blocklists = load_test_blocklist_data([data_suspends_01, data_silences_01])
     bl = merge_blocklists(blocklists, "max")
     assert len(bl) == 13
 
@@ -43,9 +37,9 @@ def test_mergeplan_max():
         assert bl[key].severity.level == SeverityLevel.SUSPEND
 
 
-def test_mergeplan_min():
+def test_mergeplan_min(data_suspends_01, data_silences_01):
     """Test 'max' mergeplan"""
-    blocklists = load_test_blocklist_data([datafile01, datafile02])
+    blocklists = load_test_blocklist_data([data_suspends_01, data_silences_01])
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
@@ -54,9 +48,9 @@ def test_mergeplan_min():
         assert bl[key].severity.level == SeverityLevel.SILENCE
 
 
-def test_mergeplan_default():
+def test_mergeplan_default(data_suspends_01, data_silences_01):
     """Default mergeplan is max, so see if it's chosen"""
-    blocklists = load_test_blocklist_data([datafile01, datafile02])
+    blocklists = load_test_blocklist_data([data_suspends_01, data_silences_01])
 
     bl = merge_blocklists(blocklists)
     assert len(bl) == 13
@@ -65,9 +59,11 @@ def test_mergeplan_default():
         assert bl[key].severity.level == SeverityLevel.SUSPEND
 
 
-def test_mergeplan_3_max():
+def test_mergeplan_3_max(data_suspends_01, data_silences_01, data_noop_01):
     """3 datafiles and mergeplan of 'max'"""
-    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+    blocklists = load_test_blocklist_data(
+        [data_suspends_01, data_silences_01, data_noop_01]
+    )
 
     bl = merge_blocklists(blocklists, "max")
     assert len(bl) == 13
@@ -79,9 +75,11 @@ def test_mergeplan_3_max():
         assert bl[key].obfuscate is True
 
 
-def test_mergeplan_3_min():
+def test_mergeplan_3_min(data_suspends_01, data_silences_01, data_noop_01):
     """3 datafiles and mergeplan of 'min'"""
-    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+    blocklists = load_test_blocklist_data(
+        [data_suspends_01, data_silences_01, data_noop_01]
+    )
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
@@ -93,9 +91,9 @@ def test_mergeplan_3_min():
         assert bl[key].obfuscate is False
 
 
-def test_mergeplan_noop_v_silence_max():
+def test_mergeplan_noop_v_silence_max(data_silences_01, data_noop_01):
     """Mergeplan of max should choose silence over noop"""
-    blocklists = load_test_blocklist_data([datafile02, datafile03])
+    blocklists = load_test_blocklist_data([data_silences_01, data_noop_01])
 
     bl = merge_blocklists(blocklists, "max")
     assert len(bl) == 13
@@ -104,9 +102,9 @@ def test_mergeplan_noop_v_silence_max():
         assert bl[key].severity.level == SeverityLevel.SILENCE
 
 
-def test_mergeplan_noop_v_silence_min():
+def test_mergeplan_noop_v_silence_min(data_silences_01, data_noop_01):
     """Mergeplan of min should choose noop over silence"""
-    blocklists = load_test_blocklist_data([datafile02, datafile03])
+    blocklists = load_test_blocklist_data([data_silences_01, data_noop_01])
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
@@ -115,8 +113,10 @@ def test_mergeplan_noop_v_silence_min():
         assert bl[key].severity.level == SeverityLevel.NONE
 
 
-def test_merge_public_comment():
-    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+def test_merge_public_comment(data_suspends_01, data_silences_01, data_noop_01):
+    blocklists = load_test_blocklist_data(
+        [data_suspends_01, data_silences_01, data_noop_01]
+    )
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
@@ -124,8 +124,10 @@ def test_merge_public_comment():
     assert bl["public-comment.example.org"].public_comment == "This is a public comment"
 
 
-def test_merge_private_comment():
-    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+def test_merge_private_comment(data_suspends_01, data_silences_01, data_noop_01):
+    blocklists = load_test_blocklist_data(
+        [data_suspends_01, data_silences_01, data_noop_01]
+    )
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
@@ -135,8 +137,10 @@ def test_merge_private_comment():
     )
 
 
-def test_merge_public_comments():
-    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+def test_merge_public_comments(data_suspends_01, data_silences_01, data_noop_01):
+    blocklists = load_test_blocklist_data(
+        [data_suspends_01, data_silences_01, data_noop_01]
+    )
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
@@ -147,9 +151,11 @@ def test_merge_public_comments():
     )
 
 
-def test_merge_duplicate_comments():
+def test_merge_duplicate_comments(data_suspends_01, data_silences_01, data_noop_01):
     """The same comment on multiple sources shouldn't get added"""
-    blocklists = load_test_blocklist_data([datafile01, datafile02, datafile03])
+    blocklists = load_test_blocklist_data(
+        [data_suspends_01, data_silences_01, data_noop_01]
+    )
 
     bl = merge_blocklists(blocklists, "min")
     assert len(bl) == 13
