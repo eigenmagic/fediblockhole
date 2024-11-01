@@ -8,7 +8,10 @@
 blocklist_instance_sources = [
   # { domain = 'public.blocklist'}, # an instance with a public list of domain_blocks
   # { domain = 'jorts.horse', token = '<a_different_token>' }, # user accessible block list
+  # { domain = 'jorts.horse', token_env_var = 'FBH_JORTS_TOKEN' }, # use environment variable for token
   # { domain = 'eigenmagic.net', token = '<a_token_with_read_auth>', admin = true }, # admin access required
+  # { domain = 'eigenmagic.net', token_env_var = 'FBH_EIGENMAGIC_READ_TOKEN', admin = true }, # same, but use environment variable for token
+
 ]
 
 # List of URLs to read csv blocklists from
@@ -31,6 +34,10 @@ allowlist_url_sources = [
 # List of instances to write blocklist to
 blocklist_instance_destinations = [
   # { domain = 'eigenmagic.net', token = '<read_write_token>', max_followed_severity = 'silence'},
+
+  # Alternate mechanism using environment variable for the token
+  # { domain = 'eigenmagic.net', token_env_var = 'FBH_EIGENMAGIC_TOKEN', max_followed_severity = 'silence'},
+
 ]
 
 ## Store a local copy of the remote blocklists after we fetch them
