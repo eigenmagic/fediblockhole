@@ -736,7 +736,8 @@ def resolve_replacements(endpoints: list[dict]) -> list[dict]:
             ...
 
         elif 'token_env_var' in item:
-            value = os.getenv(item['token_env_var'])
+            token_env_var = item['token_env_var']
+            value = os.environ.get(token_env_var)
             if value is None:
                 raise ValueError(f"Environment variable '{item["token_env_var"]}' not set.")
 
