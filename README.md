@@ -282,19 +282,52 @@ permit access to the admin domain_blocks scope, as detailed above.
 The tool supports pushing a unified blocklist to multiple instances.
 
 Configure the list of instances you want to push your blocklist to in the
-`blocklist_instance_detinations` list. Each entry is of the form:
+`blocklist_instance_destinations` list. Each entry is of the form:
 
 ```
-{ domain = '<domain_name>', token = '<BearerToken>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
+{ domain = '<domain_name>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
 ```
 
-The fields `domain` and `token` are required. 
+The field `domain` is required. It is the fully-qualified domain name of the
+instance you want to push to. 
 
-The fields `max_followed_severity` and `import_fields` are optional.
+A BearerToken is also required, for authenticating with the instance. It can be provided in two ways:
 
-The `domain` is the hostname of the instance you want to push to. The `token` is
+1. A token can be provided directly in the entry as a `token` field, like this:
+    ```
+    { domain = '<domain_name>', token = '<BearerToken>', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
+    ```
+    This was the only mechanism available up to version 0.4.5 of Fediblockhole.
+
+1. A token can be provided from the environment.
+
+    If a token is not directly provided with the `token` field, Fediblockhole will
+    look for an environment variable that contains the token.
+
+    By default, the name of the environment variable will be the domain name
+    converted to upper case and with dot/period characters converted to
+    underscores, and the suffix `_TOKEN`. For example, the token variable for the
+    domain `eigenmagic.net` would be `EIGENMAGIC_NET_TOKEN`.
+
+    You can also specify the environment variable to look for, using the
+    `token_env_var` field, like this:
+    ```
+    { domain = '<domain_name>', token_env_var = 'MY_CUSTOM_DOMAIN_TOKEN', import_fields = ['public_comment'], max_severity = 'suspend', max_followed_severity = 'suspend' }
+    ```
+
+    Fediblockhole will then look for a token in the `MY_CUSTOM_DOMAIN_TOKEN` environment variable.
+
+    If a specific `token_env_var` is provided, the default variable name will
+    not be used. If both the `token` and `token_env_var` fields are provided,
+    the token provided in the `token` field will be used, and a warning will be
+    issued to notify you that you might have misconfigured things.
+
+
+The BearerToken is
 an application token with both `admin:read:domain_blocks` and
 `admin:write:domain_blocks` authorization.
+
+The fields `max_followed_severity` and `import_fields` are optional.
 
 The optional `import_fields` setting allows you to restrict which fields are
 imported from each instance. If you want to import the `reject_reports` settings

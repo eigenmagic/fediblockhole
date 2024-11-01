@@ -2,7 +2,8 @@
 """
 from fediblockhole import setup_argparse, augment_args
 
-def shim_argparse(testargv: list=[], tomldata: str=None):
+
+def shim_argparse(testargv: list = [], tomldata: str = None):
     """Helper function to parse test args
     """
     ap = setup_argparse()
