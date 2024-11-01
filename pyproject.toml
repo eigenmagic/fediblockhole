@@ -4,7 +4,7 @@ version = "0.4.6"
 description = "Federated blocklist management for Mastodon"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 keywords = ["mastodon", "fediblock"]
 authors = [ 
     {name = "Justin Warren"}, {email = "justin@eigenmagic.com"}
@@ -19,8 +19,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.6",
 ]
 dependencies = [
     "requests",
@@ -42,4 +40,13 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
+]
+norecursedirs = [
+    "tests/helpers",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "coverage[toml]>=7.6.1",
+    "pytest ~= 8.3",
 ]
