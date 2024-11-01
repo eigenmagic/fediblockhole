@@ -5,10 +5,6 @@ from fediblockhole import merge_blocklists
 from fediblockhole.blocklists import Blocklist, parse_blocklist
 from fediblockhole.const import DomainBlock
 
-datafile01 = "data-suspends-01.csv"
-datafile02 = "data-silences-01.csv"
-datafile03 = "data-noop-01.csv"
-
 import_fields = [
     "domain",
     "severity",
@@ -20,7 +16,8 @@ import_fields = [
 ]
 
 
-def load_test_blocklist_data(datafiles):
+# FIXME: Deprecated data loader. Now using fixtures.
+def __load_test_blocklist_data(datafiles):
 
     blocklists = []
 
