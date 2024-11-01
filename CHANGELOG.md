@@ -6,6 +6,16 @@ This project uses [Semantic Versioning] and generally follows the conventions of
 
 ## [Unreleased]
 
+## [v0.4.6] - 2024-11-01
+
+### Added
+
+- Added use of Flake8 as linter to improve code consistency (59d306a)
+- Added use of the Black code formatting tool to improve code consistency (59d306a)
+- Cleaned up code lint and formatting (ffb8219)
+- Added issue templates to help new contributors get their issues addressed quicker (3b655d6)
+- Added ability to use environment variables to provide BearerTokens. Thanks to @offbyone (8c5761e)
+
 ## [v0.4.5] - 2023-12-30
 
 ### Added
