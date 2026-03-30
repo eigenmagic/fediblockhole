@@ -311,13 +311,13 @@ def fetch_from_fires(
         if source_idx > 0:
             time.sleep(2)
 
-        # Accept both 'dataset' (preferred) and 'url' (legacy) keys
-        dataset_url = source.get("dataset", source.get("url", "")).rstrip("/")
-        if not dataset_url:
+        if "dataset" not in source:
             log.warning(
                 "FIRES: source must have a 'dataset' key with the full dataset URL. Skipping."
             )
             continue
+
+        dataset_url = source["dataset"].rstrip("/")
         max_severity = source.get("max_severity", "suspend")
         ignore_accept = source.get("ignore_accept", False)
         honor_retractions = source.get("retractions", False)
