@@ -304,7 +304,12 @@ def fetch_from_fires(
     from .fires import DEFAULT_STATE_FILE
     state = FIRESState(state_file or DEFAULT_STATE_FILE)
 
-    for source in fires_sources:
+    import time
+
+    for source_idx, source in enumerate(fires_sources):
+        if source_idx > 0:
+            time.sleep(2)
+
         if "url" not in source:
             log.warning(
                 "FIRES: source must have a 'url' key with the full dataset URL. Skipping."

@@ -123,18 +123,26 @@ class FIRESClient:
             "User-Agent": "FediBlockHole-FIRES/1.0",
         }
 
-    def _get(self, url: str) -> dict:
-        """Fetch a URL and return parsed JSON."""
-        log.debug(f"FIRES fetch: {url}")
-        response = requests.get(
-            url, headers=self._headers(), timeout=REQUEST_TIMEOUT
-        )
-        if response.status_code != 200:
+    def _get(self, url: str, retries: int = 3) -> dict:
+        """Fetch a URL and return parsed JSON. Retries on 429 with backoff."""
+        import time
+
+        for attempt in range(retries):
+            log.debug(f"FIRES fetch: {url}")
+            response = requests.get(
+                url, headers=self._headers(), timeout=REQUEST_TIMEOUT
+            )
+            if response.status_code == 200:
+                return response.json()
+            if response.status_code == 429 and attempt < retries - 1:
+                wait = (attempt + 1) * 5
+                log.warning(f"FIRES: rate limited on {url}, waiting {wait}s (attempt {attempt + 1}/{retries})")
+                time.sleep(wait)
+                continue
             log.error(f"FIRES request failed: {response.status_code} {url}")
             raise ValueError(
                 f"FIRES request failed: {response.status_code}: {response.content}"
             )
-        return response.json()
 
     def _ensure_endpoints(self):
         """Fetch the dataset metadata to discover endpoints."""
@@ -214,13 +222,22 @@ def build_public_comment(labels: list, label_names: dict, comment: str = "") -> 
     return label_text or comment
 
 
+# Module-level cache so labels fetched for one dataset don't need
+# to be re-fetched for another dataset on the same (or different) server.
+_label_cache: dict = {}
+
+
 def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
     """Build a label ID -> name map by fetching each label URL from the snapshot.
     
     FIRES snapshots include full label URLs in each item's 'labels' array.
     Each URL is a fetchable resource that returns the label data.
-    We collect unique label URLs across all items and fetch each one.
+    We collect unique label URLs across all items and fetch only the ones
+    we haven't seen before, with a short delay between requests to avoid
+    rate limiting.
     """
+    import time
+
     # Collect unique label URLs from all items
     label_urls = set()
     for item in snapshot.get("orderedItems", []):
@@ -228,8 +245,16 @@ def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
             if isinstance(label_ref, str) and label_ref.startswith("http"):
                 label_urls.add(label_ref)
 
-    label_map = {}
-    for url in label_urls:
+    # Filter to only labels we haven't fetched yet
+    new_urls = [url for url in label_urls if url not in _label_cache]
+    if new_urls:
+        log.info(f"FIRES: fetching {len(new_urls)} new labels ({len(label_urls) - len(new_urls)} cached)")
+    else:
+        log.info(f"FIRES: all {len(label_urls)} labels already cached")
+
+    for i, url in enumerate(new_urls):
+        if i > 0:
+            time.sleep(1)
         try:
             data = client._get(url)
             label_id = data.get("id", url)
@@ -241,15 +266,19 @@ def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
             else:
                 name = data.get("name", "")
             if name:
-                label_map[label_id] = name
-                # Also key by the URL we fetched, in case id differs
+                _label_cache[url] = name
                 if label_id != url:
-                    label_map[url] = name
+                    _label_cache[label_id] = name
         except Exception as e:
             log.warning(f"Could not fetch FIRES label {url}: {e}")
-            # Fall back to slug from URL
             slug = url.rstrip("/").split("/")[-1]
-            label_map[url] = slug
+            _label_cache[url] = slug
+
+    # Build the map for this snapshot from the cache
+    label_map = {}
+    for url in label_urls:
+        if url in _label_cache:
+            label_map[url] = _label_cache[url]
 
     return label_map
 
