@@ -9,6 +9,7 @@ from fediblockhole.const import SeverityLevel
 from fediblockhole.fires import (
     FIRESState,
     apply_changes,
+    build_public_comment,
     fires_labels_to_comment,
     fires_policy_to_severity,
     snapshot_to_blocklist,
@@ -72,6 +73,34 @@ def test_labels_to_comment_unknown_label():
 
 def test_labels_to_comment_empty():
     result = fires_labels_to_comment([], LABEL_MAP)
+    assert result == ""
+
+
+# -- Comment building tests --
+
+
+def test_build_public_comment_labels_only():
+    labels = ["http://localhost:4444/labels/label-uuid-hate-speech"]
+    result = build_public_comment(labels, LABEL_MAP)
+    assert result == "Hate Speech"
+
+
+def test_build_public_comment_comment_only():
+    result = build_public_comment([], LABEL_MAP, "Admin recruits for brigading")
+    assert result == "Admin recruits for brigading"
+
+
+def test_build_public_comment_labels_and_comment():
+    labels = [
+        "http://localhost:4444/labels/label-uuid-hate-speech",
+        "http://localhost:4444/labels/label-uuid-harassment",
+    ]
+    result = build_public_comment(labels, LABEL_MAP, "Documented targeting of trans users")
+    assert result == "Hate Speech, Online Harassment \u2014 Documented targeting of trans users"
+
+
+def test_build_public_comment_empty():
+    result = build_public_comment([], LABEL_MAP, "")
     assert result == ""
 
 

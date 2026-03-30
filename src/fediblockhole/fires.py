@@ -184,6 +184,23 @@ def fires_labels_to_comment(labels: list, label_names: dict) -> str:
     return ", ".join(names)
 
 
+def build_public_comment(labels: list, label_names: dict, comment: str = "") -> str:
+    """Build a public_comment from FIRES labels and optional freeform comment.
+    
+    If both labels and a comment are present, combines them with a separator.
+    
+    @param labels: List of label URLs or UUIDs from the FIRES response
+    @param label_names: Dict mapping label URL/ID -> human-readable name
+    @param comment: Optional freeform comment from the FIRES change
+    @returns: Combined label names and comment string
+    """
+    label_text = fires_labels_to_comment(labels, label_names)
+    comment = (comment or "").strip()
+    if label_text and comment:
+        return f"{label_text} — {comment}"
+    return label_text or comment
+
+
 def build_label_map(client: FIRESClient) -> dict:
     """Fetch labels from the FIRES server and build an ID -> name map."""
     label_map = {}
@@ -264,17 +281,20 @@ def snapshot_to_blocklist(
                 allowlist.blocks[domain] = DomainBlock(
                     domain=domain,
                     severity="noop",
-                    public_comment=fires_labels_to_comment(
-                        item.get("labels", []), label_map
+                    public_comment=build_public_comment(
+                        item.get("labels", []), label_map,
+                        item.get("comment", "")
                     ),
                 )
             continue
 
         severity = fires_policy_to_severity(policy)
 
-        # Build a comment from labels
+        # Build a comment from labels and optional freeform comment
         labels = item.get("labels", [])
-        public_comment = fires_labels_to_comment(labels, label_map)
+        public_comment = build_public_comment(
+            labels, label_map, item.get("comment", "")
+        )
 
         block = DomainBlock(
             domain=domain,
@@ -331,7 +351,9 @@ def apply_changes(
         if item_type == "Recommendation":
             policy = item.get("recommendedPolicy", "drop")
             labels = item.get("labels", [])
-            public_comment = fires_labels_to_comment(labels, label_map)
+            public_comment = build_public_comment(
+                labels, label_map, item.get("comment", "")
+            )
 
             if policy in ALLOW_POLICIES:
                 if not ignore_accept:
