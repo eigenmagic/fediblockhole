@@ -425,20 +425,25 @@ in `threshold` of those 5 sources to be included in the merged blocklist.
 ### Configuration
 
 Add FIRES sources to your config file using the `blocklist_fires_sources` list.
-Three formats are supported:
+Each entry must have a `url` key pointing to the full dataset URL. The dataset
+URL is the canonical identifier per the FIRES spec.
 
 ```toml
 blocklist_fires_sources = [
-  # Discover and fetch all datasets from a FIRES server
-  { server = 'https://fires.example.com' },
-
-  # Fetch specific datasets by UUID from a server
-  { server = 'https://fires.example.com', datasets = ['uuid-1', 'uuid-2'] },
-
-  # Paste a dataset URL directly
-  { url = 'https://other-fires.example/datasets/019d3565-f022-abbc-c43d649f294b' },
+  { url = 'https://fires.example/datasets/019d3565-f022-abbc-c43d649f294b' },
+  { url = 'https://fires.example/datasets/019d3565-aabb-ccdd-eeff-112233445566', max_severity = 'silence' },
+  { url = 'https://trusted-fires.example/datasets/uuid', retractions = true },
 ]
 ```
+
+The dataset URL is opaque — FediBlockHole fetches it with an `Accept: application/ld+json`
+header and the dataset metadata tells it where the snapshot and changes endpoints are.
+No path construction, no assumptions about URL structure.
+
+Label names are resolved by fetching each label URL found in the snapshot data.
+FIRES snapshots include full label URLs (e.g., `http://fires.example/labels/uuid`)
+which are individually fetchable resources. No separate labels collection endpoint
+is needed.
 
 FIRES datasets are public, so no authentication is required to read them.
 
@@ -463,14 +468,6 @@ The state file defaults to `~/.fediblockhole/fires_state.json`. You can override
 this with the `fires_state_file` config option or the `--fires-state-file`
 commandline flag.
 
-### Labels as comments
-
-FIRES recommendations include labels from the
-[IFTAS shared vocabulary](https://about.iftas.org/library/shared-vocabulary-labels/)
-(e.g., "Hate Speech", "CSAM", "Spam"). These are mapped to the `public_comment`
-field on domain blocks, so instance admins can see why a domain was recommended
-for blocking.
-
 ### The `accept` policy
 
 The FIRES protocol includes an `accept` policy for recommending that a domain
@@ -487,7 +484,7 @@ set `ignore_accept = true` on the source:
 
 ```toml
 blocklist_fires_sources = [
-  { server = 'https://fires.example.com', ignore_accept = true },
+  { url = 'https://fires.example/datasets/uuid', ignore_accept = true },
 ]
 ```
 
@@ -518,8 +515,8 @@ including its judgment that something should come off."
 
 ```toml
 blocklist_fires_sources = [
-  { server = 'https://fires.trusted.example', retractions = true },
-  { url = 'https://other-fires.example/datasets/uuid', retractions = true },
+  { url = 'https://fires.trusted.example/datasets/uuid-1', retractions = true },
+  { url = 'https://other-fires.example/datasets/uuid-2', retractions = true },
 ]
 ```
 

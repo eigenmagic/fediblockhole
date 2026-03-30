@@ -265,26 +265,6 @@ def fetch_from_instances(
     return blocklists
 
 
-def _parse_dataset_url(url: str) -> tuple:
-    """Extract server base URL and dataset ID from a full dataset URL.
-
-    e.g. 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b'
-    returns ('https://fires.example', '019d3565-f022-777b-abbc-c43d649f294b')
-    """
-    url = url.rstrip("/")
-    # Find /datasets/ in the URL and split there
-    marker = "/datasets/"
-    idx = url.find(marker)
-    if idx == -1:
-        raise ValueError(f"Not a valid FIRES dataset URL (missing /datasets/): {url}")
-    server_url = url[:idx]
-    dataset_id = url[idx + len(marker):]
-    # Strip any trailing path segments (e.g. /snapshot, /changes)
-    if "/" in dataset_id:
-        dataset_id = dataset_id.split("/")[0]
-    return server_url, dataset_id
-
-
 def fetch_from_fires(
     fires_sources: list,
     state_file: str = None,
@@ -293,24 +273,30 @@ def fetch_from_fires(
     export_fields: list = EXPORT_FIELDS,
     dryrun: bool = False,
 ) -> list:
-    """Fetch blocklists from FIRES datasets
+    """Fetch blocklists from FIRES datasets.
 
-    Supports three source formats:
-      - { server = '...' }                    -- discover and fetch all datasets
-      - { server = '...', datasets = [...] }   -- fetch specific datasets by ID
-      - { url = '...' }                        -- fetch a single dataset by full URL
+    Each source is a dict with a 'url' key pointing to the full dataset URL.
+    The dataset URL is the canonical identifier per the FIRES spec.
+
+    Example config:
+      { url = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' }
+
+    Optional per-source keys:
+      max_severity   -- cap the highest severity (default: 'suspend')
+      ignore_accept  -- skip 'accept' policy entries (default: false)
+      retractions    -- honor retractions from this source (default: false)
 
     @param fires_sources: List of FIRES source configs from the TOML file
     @param state_file: Path to the FIRES state file for cursor tracking
     @param save_intermediate: Whether to save intermediate blocklists
     @param savedir: Directory to save intermediate blocklists
     @param export_fields: Fields to include when saving intermediate lists
-    @returns: A list of Blocklist objects
+    @returns: Tuple of (blocklists, allowlists, trusted_retractions)
     """
     log.info("Fetching domain blocks from FIRES datasets...")
     blocklists = []
     allowlists = []
-    trusted_retractions = set()  # domains retracted by sources with retractions=true
+    trusted_retractions = set()
 
     if not fires_sources:
         return blocklists, allowlists, trusted_retractions
@@ -319,82 +305,38 @@ def fetch_from_fires(
     state = FIRESState(state_file or DEFAULT_STATE_FILE)
 
     for source in fires_sources:
+        if "url" not in source:
+            log.warning(
+                "FIRES: source must have a 'url' key with the full dataset URL. Skipping."
+            )
+            continue
+
+        dataset_url = source["url"].rstrip("/")
         max_severity = source.get("max_severity", "suspend")
         ignore_accept = source.get("ignore_accept", False)
         honor_retractions = source.get("retractions", False)
 
-        # Collect (server_url, dataset_id) pairs to fetch
-        fetch_list = []
-
-        if "url" in source:
-            # Direct dataset URL: parse it into server + dataset_id
-            try:
-                server_url, dataset_id = _parse_dataset_url(source["url"])
-                fetch_list.append((server_url, dataset_id))
-            except ValueError as e:
-                log.error(f"FIRES: {e}")
-                continue
-
-        elif "server" in source:
-            server_url = source["server"].rstrip("/")
-            dataset_ids = source.get("datasets", [])
-
-            if dataset_ids:
-                # Cherry-pick specific datasets by ID
-                for did in dataset_ids:
-                    fetch_list.append((server_url, did))
-            else:
-                # Discover all datasets on the server
-                log.info(f"FIRES: discovering datasets on {server_url}")
-                from .fires import FIRESClient
-                client = FIRESClient(server_url)
-                try:
-                    datasets = client.get_datasets()
-                    for ds in datasets:
-                        ds_id_url = ds.get("id", "")
-                        if ds_id_url:
-                            ds_id = ds_id_url.rstrip("/").split("/")[-1]
-                            fetch_list.append((server_url, ds_id))
-                    log.info(f"FIRES: found {len(fetch_list)} datasets")
-                except Exception as e:
-                    log.error(
-                        f"FIRES: could not discover datasets on {server_url}: {e}"
-                    )
-                    continue
-        else:
-            log.warning(
-                "FIRES: source must have either 'server' or 'url'. Skipping."
+        try:
+            bl, al = fetch_fires_blocklist(
+                dataset_url, state,
+                max_severity=max_severity,
+                ignore_accept=ignore_accept,
             )
+            blocklists.append(bl)
+            if len(al) > 0:
+                allowlists.append(al)
+
+            if honor_retractions:
+                trusted_retractions.update(
+                    state.get_retractions(dataset_url)
+                )
+
+            if save_intermediate:
+                save_intermediate_blocklist(bl, savedir, export_fields)
+        except Exception as e:
+            log.error(f"FIRES: error fetching {dataset_url}: {e}")
             continue
 
-        # Fetch each dataset
-        for srv, did in fetch_list:
-            try:
-                bl, al = fetch_fires_blocklist(
-                    srv, did, state,
-                    max_severity=max_severity,
-                    ignore_accept=ignore_accept,
-                )
-                blocklists.append(bl)
-                if len(al) > 0:
-                    allowlists.append(al)
-                # Collect retractions from trusted sources
-                if honor_retractions:
-                    dataset_url = f"{srv}/datasets/{did}"
-                    trusted_retractions.update(
-                        state.get_retractions(dataset_url)
-                    )
-                if save_intermediate:
-                    save_intermediate_blocklist(bl, savedir, export_fields)
-            except Exception as e:
-                log.error(
-                    f"FIRES: error fetching dataset {did} from {srv}: {e}"
-                )
-                continue
-
-    # Persist state after all datasets are processed
-    # Don't save state during dryrun — we want the next real run
-    # to see the same changes we just previewed
     if not dryrun:
         state.save()
     else:

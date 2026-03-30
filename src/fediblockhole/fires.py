@@ -106,10 +106,16 @@ class FIRESState:
 
 
 class FIRESClient:
-    """HTTP client for consuming public FIRES protocol endpoints."""
+    """HTTP client for consuming a single FIRES dataset.
+    
+    Takes the full dataset URL as the identifier. Fetches the dataset
+    metadata to discover the snapshot, changes, and labels endpoints
+    as provided by the server — no path construction.
+    """
 
-    def __init__(self, base_url: str):
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, dataset_url: str):
+        self.dataset_url = dataset_url.rstrip("/")
+        self._endpoints = None
 
     def _headers(self) -> dict:
         return {
@@ -130,19 +136,29 @@ class FIRESClient:
             )
         return response.json()
 
-    def get_datasets(self) -> list:
-        """List all datasets on the server."""
-        data = self._get(f"{self.base_url}/datasets")
-        # The datasets collection uses 'items', not 'orderedItems'
-        return data.get("items", data.get("orderedItems", []))
+    def _ensure_endpoints(self):
+        """Fetch the dataset metadata to discover endpoints."""
+        if self._endpoints is not None:
+            return
+        log.debug(f"FIRES: discovering endpoints for {self.dataset_url}")
+        data = self._get(self.dataset_url)
+        endpoints = data.get("endpoints", {})
+        if not endpoints.get("snapshot") or not endpoints.get("changes"):
+            raise ValueError(
+                f"FIRES dataset at {self.dataset_url} did not provide "
+                f"snapshot/changes endpoints in its metadata"
+            )
+        self._endpoints = endpoints
 
-    def get_snapshot(self, dataset_id: str) -> dict:
-        """Fetch the current snapshot for a dataset."""
-        return self._get(f"{self.base_url}/datasets/{dataset_id}/snapshot")
+    def get_snapshot(self) -> dict:
+        """Fetch the current snapshot for this dataset."""
+        self._ensure_endpoints()
+        return self._get(self._endpoints["snapshot"])
 
-    def get_changes(self, dataset_id: str, since: str = None) -> dict:
-        """Fetch a page of changes for a dataset."""
-        url = f"{self.base_url}/datasets/{dataset_id}/changes"
+    def get_changes(self, since: str = None) -> dict:
+        """Fetch a page of changes for this dataset."""
+        self._ensure_endpoints()
+        url = self._endpoints["changes"]
         if since:
             url += f"?since={since}"
         return self._get(url)
@@ -151,9 +167,6 @@ class FIRESClient:
         """Fetch changes from a full URL (for pagination)."""
         return self._get(url)
 
-    def get_labels(self) -> dict:
-        """Fetch the labels collection."""
-        return self._get(f"{self.base_url}/labels")
 
 
 def fires_policy_to_severity(policy: str) -> str:
@@ -201,26 +214,43 @@ def build_public_comment(labels: list, label_names: dict, comment: str = "") -> 
     return label_text or comment
 
 
-def build_label_map(client: FIRESClient) -> dict:
-    """Fetch labels from the FIRES server and build an ID -> name map."""
+def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
+    """Build a label ID -> name map by fetching each label URL from the snapshot.
+    
+    FIRES snapshots include full label URLs in each item's 'labels' array.
+    Each URL is a fetchable resource that returns the label data.
+    We collect unique label URLs across all items and fetch each one.
+    """
+    # Collect unique label URLs from all items
+    label_urls = set()
+    for item in snapshot.get("orderedItems", []):
+        for label_ref in item.get("labels", []):
+            if isinstance(label_ref, str) and label_ref.startswith("http"):
+                label_urls.add(label_ref)
+
     label_map = {}
-    try:
-        labels_data = client.get_labels()
-        for item in labels_data.get("items", []):
-            label_id = item.get("id", "")
-            # Prefer nameMap.en over flat name
-            name_map = item.get("nameMap")
+    for url in label_urls:
+        try:
+            data = client._get(url)
+            label_id = data.get("id", url)
+            name_map = data.get("nameMap")
             if name_map and isinstance(name_map, dict):
                 name = name_map.get("en", name_map.get("en-US", ""))
                 if not name:
-                    # Grab first available
                     name = next(iter(name_map.values()), "")
             else:
-                name = item.get("name", "")
-            if label_id and name:
+                name = data.get("name", "")
+            if name:
                 label_map[label_id] = name
-    except Exception as e:
-        log.warning(f"Could not fetch FIRES labels: {e}")
+                # Also key by the URL we fetched, in case id differs
+                if label_id != url:
+                    label_map[url] = name
+        except Exception as e:
+            log.warning(f"Could not fetch FIRES label {url}: {e}")
+            # Fall back to slug from URL
+            slug = url.rstrip("/").split("/")[-1]
+            label_map[url] = slug
+
     return label_map
 
 
@@ -399,8 +429,7 @@ def apply_changes(
 
 
 def fetch_fires_blocklist(
-    server_url: str,
-    dataset_id: str,
+    dataset_url: str,
     state: FIRESState,
     max_severity: str = "suspend",
     max_pages: int = 50,
@@ -414,18 +443,16 @@ def fetch_fires_blocklist(
     Recommendations with 'accept' policy go to the allowlist.
     All other recommendations go to the blocklist.
     
-    @param server_url: Base URL of the FIRES server
-    @param dataset_id: UUID of the dataset to fetch
+    Label names are resolved by fetching each label URL found in the
+    snapshot data — no separate labels endpoint needed.
+    
+    @param dataset_url: Full URL of the FIRES dataset (the canonical identifier)
     @param state: FIRESState for cursor and retraction tracking
     @param max_severity: Maximum severity cap
     @param max_pages: Maximum number of changes pages to walk
     @returns: Tuple of (Blocklist, Blocklist) where the second is the allowlist
     """
-    client = FIRESClient(server_url)
-    dataset_url = f"{server_url}/datasets/{dataset_id}"
-
-    # Build label name lookup
-    label_map = build_label_map(client)
+    client = FIRESClient(dataset_url)
 
     # Check for existing cursor
     cursor = state.get_cursor(dataset_url)
@@ -433,8 +460,11 @@ def fetch_fires_blocklist(
 
     if cursor is None:
         # First run: fetch the full snapshot
-        log.info(f"FIRES: fetching full snapshot for dataset {dataset_id}")
-        snapshot = client.get_snapshot(dataset_id)
+        log.info(f"FIRES: fetching full snapshot for {dataset_url}")
+        snapshot = client.get_snapshot()
+
+        # Build label names from the label URLs in the snapshot
+        label_map = build_label_map_from_snapshot(client, snapshot)
 
         blocklist, allowlist = snapshot_to_blocklist(
             snapshot, dataset_url, label_map, max_severity, retractions,
@@ -453,8 +483,12 @@ def fetch_fires_blocklist(
 
     else:
         # Incremental: start from snapshot, then apply changes
-        log.info(f"FIRES: incremental update for dataset {dataset_id}")
-        snapshot = client.get_snapshot(dataset_id)
+        log.info(f"FIRES: incremental update for {dataset_url}")
+        snapshot = client.get_snapshot()
+
+        # Build label names from the label URLs in the snapshot
+        label_map = build_label_map_from_snapshot(client, snapshot)
+
         blocklist, allowlist = snapshot_to_blocklist(
             snapshot, dataset_url, label_map, max_severity, retractions,
             ignore_accept

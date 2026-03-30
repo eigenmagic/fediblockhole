@@ -24,26 +24,21 @@ blocklist_url_sources = [
 
 ]
 
-# List of FIRES sources to read datasets from
-# Three formats are supported:
-#   1. Server-wide: fetch all datasets from a FIRES server
-#      { server = 'https://fires.example.com' }
-#   2. Cherry-pick: fetch specific datasets from a server by UUID
-#      { server = 'https://fires.example.com', datasets = ['uuid-1', 'uuid-2'] }
-#   3. Direct URL: paste a dataset URL directly
-#      { url = 'https://fires.example.com/datasets/uuid-1' }
+# List of FIRES dataset sources to read from.
+# Each entry must have a 'url' key with the full dataset URL.
+# The dataset URL is the canonical identifier per the FIRES spec.
 #
 # FIRES policies are mapped to Mastodon severities:
 #   drop/reject -> suspend, filter -> silence
 # Each dataset counts as one source for threshold calculations.
-# Optional: max_severity to cap the highest severity applied.
+#
+# Optional per-source keys:
+#   max_severity   -- cap the highest severity applied (default: 'suspend')
+#   ignore_accept  -- skip 'accept' policy entries (default: false)
+#   retractions    -- honor retractions from this source (default: false)
 blocklist_fires_sources = [
-  # { server = 'https://fires.example.com' },  # all datasets on this server
-  # { server = 'https://fires.example.com', datasets = ['dataset-uuid-1', 'dataset-uuid-2'] },
-  # { url = 'https://other-fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' },
-  # { url = 'https://other-fires.example/datasets/019d3565-f022-777b-abbc-aabbccddeeff', max_severity = 'silence' },
-  # { server = 'https://fires.example.com', ignore_accept = true },  # ignore 'accept' policies
-  # { server = 'https://fires.example.com', retractions = true },  # honor retractions from this source
+  # { url = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' },
+  # { url = 'https://fires.example/datasets/019d3565-f022-777b-abbc-aabbccddeeff', max_severity = 'silence' },
   # { url = 'https://trusted-fires.example/datasets/uuid', retractions = true },
 ]
 

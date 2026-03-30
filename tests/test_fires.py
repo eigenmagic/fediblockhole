@@ -489,42 +489,22 @@ def test_snapshot_skips_actor_entities():
     assert len(bl) == 1  # actor was skipped
 
 
-# -- URL parsing tests --
+# -- FIRESClient tests --
 
 
-def test_parse_dataset_url():
-    from fediblockhole import _parse_dataset_url
+def test_client_stores_dataset_url():
+    from fediblockhole.fires import FIRESClient
 
-    server, did = _parse_dataset_url(
+    client = FIRESClient(
         "https://fires.example.com/datasets/019d3565-f022-777b-abbc-c43d649f294b"
     )
-    assert server == "https://fires.example.com"
-    assert did == "019d3565-f022-777b-abbc-c43d649f294b"
+    assert client.dataset_url == "https://fires.example.com/datasets/019d3565-f022-777b-abbc-c43d649f294b"
 
 
-def test_parse_dataset_url_trailing_slash():
-    from fediblockhole import _parse_dataset_url
+def test_client_strips_trailing_slash():
+    from fediblockhole.fires import FIRESClient
 
-    server, did = _parse_dataset_url(
+    client = FIRESClient(
         "https://fires.example.com/datasets/019d3565-f022-777b-abbc-c43d649f294b/"
     )
-    assert server == "https://fires.example.com"
-    assert did == "019d3565-f022-777b-abbc-c43d649f294b"
-
-
-def test_parse_dataset_url_with_snapshot_path():
-    from fediblockhole import _parse_dataset_url
-
-    server, did = _parse_dataset_url(
-        "https://fires.example.com/datasets/019d3565-f022-777b-abbc-c43d649f294b/snapshot"
-    )
-    assert server == "https://fires.example.com"
-    assert did == "019d3565-f022-777b-abbc-c43d649f294b"
-
-
-def test_parse_dataset_url_invalid():
-    from fediblockhole import _parse_dataset_url
-    import pytest
-
-    with pytest.raises(ValueError, match="missing /datasets/"):
-        _parse_dataset_url("https://fires.example.com/labels/something")
+    assert client.dataset_url == "https://fires.example.com/datasets/019d3565-f022-777b-abbc-c43d649f294b"
