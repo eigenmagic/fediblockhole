@@ -275,11 +275,11 @@ def fetch_from_fires(
 ) -> list:
     """Fetch blocklists from FIRES datasets.
 
-    Each source is a dict with a 'url' key pointing to the full dataset URL.
+    Each source is a dict with a 'dataset' key pointing to the full dataset URL.
     The dataset URL is the canonical identifier per the FIRES spec.
 
     Example config:
-      { url = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' }
+      { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' }
 
     Optional per-source keys:
       max_severity   -- cap the highest severity (default: 'suspend')
