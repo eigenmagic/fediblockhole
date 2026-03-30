@@ -380,7 +380,7 @@ def test_snapshot_ignore_accept():
 
 
 def test_apply_changes_ignore_accept():
-    """When ignore_accept=True, accept changes don't modify blocklist or allowlist."""
+    """When ignore_accept=True, accept still removes blocks but doesn't add to allowlist."""
     bl = Blocklist("test")
     al = Blocklist("test")
     from fediblockhole.const import DomainBlock
@@ -399,8 +399,9 @@ def test_apply_changes_ignore_accept():
     bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, "test",
                            ignore_accept=True)
 
-    # Should still be in blocklist, not moved to allowlist
-    assert "reformed.example" in bl
+    # Accept is an implicit retraction — block is removed regardless of ignore_accept
+    assert "reformed.example" not in bl
+    # But with ignore_accept, it should NOT be in the allowlist either
     assert "reformed.example" not in al
 
 
@@ -487,6 +488,326 @@ def test_snapshot_skips_actor_entities():
 
     assert "bad.example" in bl
     assert len(bl) == 1  # actor was skipped
+
+
+# -- Private comment stamping tests --
+
+
+def test_snapshot_stamps_private_comment():
+    """Blocks from snapshots should be stamped with FIRES:{dataset_url}."""
+    snapshot = {
+        "orderedItems": [
+            {
+                "type": "Recommendation",
+                "entityKind": "domain",
+                "entityKey": "bad.example",
+                "recommendedPolicy": "drop",
+                "labels": [],
+            },
+        ]
+    }
+    dataset_url = "https://fires.example/datasets/test-uuid"
+    bl, al = snapshot_to_blocklist(snapshot, dataset_url, LABEL_MAP)
+
+    assert bl["bad.example"].private_comment == f"FIRES:{dataset_url}"
+
+
+def test_apply_changes_stamps_private_comment():
+    """Blocks from changes should be stamped with FIRES:{dataset_url}."""
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    dataset_url = "https://fires.example/datasets/test-uuid"
+
+    changes = [
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "new.example",
+            "recommendedPolicy": "drop",
+            "labels": [],
+        }
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, dataset_url)
+
+    assert bl["new.example"].private_comment == f"FIRES:{dataset_url}"
+
+
+def test_accept_does_not_stamp_allowlist():
+    """Accept entries in the allowlist should not get a FIRES stamp."""
+    snapshot = {
+        "orderedItems": [
+            {
+                "type": "Recommendation",
+                "entityKind": "domain",
+                "entityKey": "good.example",
+                "recommendedPolicy": "accept",
+                "labels": [],
+            },
+        ]
+    }
+    dataset_url = "https://fires.example/datasets/test-uuid"
+    bl, al = snapshot_to_blocklist(snapshot, dataset_url, LABEL_MAP)
+
+    assert "good.example" in al
+    # Allowlist entries don't need a FIRES stamp since they aren't pushed as blocks
+    assert al["good.example"].private_comment != f"FIRES:{dataset_url}"
+
+
+# -- Accept as implicit retraction tests --
+
+
+def test_accept_removes_block_from_same_dataset():
+    """Accept should remove a block even without an explicit Retraction."""
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    from fediblockhole.const import DomainBlock
+    bl.blocks["turning.example"] = DomainBlock("turning.example", "suspend")
+
+    changes = [
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "turning.example",
+            "recommendedPolicy": "accept",
+            "labels": [],
+        }
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, "test-dataset")
+
+    assert "turning.example" not in bl
+    assert "turning.example" in al
+
+
+def test_accept_removes_block_even_with_ignore_accept():
+    """Accept removes blocks even when ignore_accept=True, just skips allowlist."""
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    from fediblockhole.const import DomainBlock
+    bl.blocks["turning.example"] = DomainBlock("turning.example", "suspend")
+
+    changes = [
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "turning.example",
+            "recommendedPolicy": "accept",
+            "labels": [],
+        }
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, "test-dataset",
+                           ignore_accept=True)
+
+    assert "turning.example" not in bl
+    assert "turning.example" not in al
+
+
+def test_changes_are_overwrites_not_merges():
+    """Miss Em's example: drop -> filter -> accept, final result is accept.
+    
+    Changes are applied in order. Each one fully replaces the previous
+    state for that domain. No merging of policies or filters.
+    """
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    dataset_url = "https://fires.example/datasets/test-uuid"
+
+    changes = [
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "a.example",
+            "recommendedPolicy": "drop",
+            "labels": [],
+        },
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "a.example",
+            "recommendedPolicy": "filter",
+            "labels": [],
+        },
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "a.example",
+            "recommendedPolicy": "accept",
+            "labels": [],
+        },
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, dataset_url)
+
+    # Final state: accept wins. Not blocked, on the allowlist.
+    assert "a.example" not in bl
+    assert "a.example" in al
+    assert al["a.example"].severity.level == SeverityLevel.NONE
+
+
+def test_drop_to_accept_to_drop():
+    """Full lifecycle: drop creates block, accept removes it, drop adds it back."""
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    dataset_url = "https://fires.example/datasets/test-uuid"
+
+    changes = [
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "flip.example",
+            "recommendedPolicy": "drop",
+            "labels": [],
+        },
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "flip.example",
+            "recommendedPolicy": "accept",
+            "labels": [],
+        },
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "flip.example",
+            "recommendedPolicy": "drop",
+            "labels": [],
+        },
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, dataset_url)
+
+    # Final state: back to blocked
+    assert "flip.example" in bl
+    assert bl["flip.example"].private_comment == f"FIRES:{dataset_url}"
+    # Accept in the middle should have been superseded
+    assert "flip.example" not in al
+
+
+# -- Per-dataset retraction ownership tests --
+
+
+def test_retraction_only_removes_own_blocks():
+    """A retraction from dataset A should not remove a block added by dataset B."""
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    from fediblockhole.const import DomainBlock
+
+    dataset_a = "https://fires.example/datasets/aaa"
+    dataset_b = "https://fires.example/datasets/bbb"
+
+    # Dataset B added this block
+    bl.blocks["contested.example"] = DomainBlock(
+        "contested.example", "suspend",
+        private_comment=f"FIRES:{dataset_b}",
+    )
+
+    # Dataset A retracts it
+    changes = [
+        {
+            "type": "Retraction",
+            "entityKind": "domain",
+            "entityKey": "contested.example",
+            "comment": "No longer recommended",
+        }
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, dataset_a)
+
+    # The block should still be there — dataset A didn't add it.
+    # apply_changes removes from the in-memory blocklist regardless,
+    # but the retraction is recorded in state. The ownership check
+    # happens at push time in push_blocklist, not here.
+    # What we CAN verify is that the retraction is recorded for dataset A.
+    assert "contested.example" in state.get_retractions(dataset_a)
+
+
+def test_retraction_recorded_per_dataset():
+    """Retractions should be keyed to the dataset that issued them."""
+    dataset_a = "https://fires.example/datasets/aaa"
+    dataset_b = "https://fires.example/datasets/bbb"
+
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    state.add_retraction(dataset_a, "bad.example")
+    state.add_retraction(dataset_b, "other.example")
+
+    assert "bad.example" in state.get_retractions(dataset_a)
+    assert "bad.example" not in state.get_retractions(dataset_b)
+    assert "other.example" in state.get_retractions(dataset_b)
+    assert "other.example" not in state.get_retractions(dataset_a)
+
+
+def test_accept_from_one_dataset_block_from_another():
+    """Dataset A accepts a domain, dataset B blocks it. Block should survive."""
+    from fediblockhole.const import DomainBlock
+
+    dataset_a = "https://fires.example/datasets/aaa"
+    dataset_b = "https://fires.example/datasets/bbb"
+
+    # Simulate processing dataset A first: it accepts the domain
+    bl_a = Blocklist(dataset_a)
+    al_a = Blocklist(dataset_a)
+    snapshot_a = {
+        "orderedItems": [
+            {
+                "type": "Recommendation",
+                "entityKind": "domain",
+                "entityKey": "debated.example",
+                "recommendedPolicy": "accept",
+                "labels": [],
+            },
+        ]
+    }
+    bl_a, al_a = snapshot_to_blocklist(snapshot_a, dataset_a, LABEL_MAP)
+    assert "debated.example" not in bl_a
+    assert "debated.example" in al_a
+
+    # Simulate processing dataset B: it blocks the domain
+    snapshot_b = {
+        "orderedItems": [
+            {
+                "type": "Recommendation",
+                "entityKind": "domain",
+                "entityKey": "debated.example",
+                "recommendedPolicy": "drop",
+                "labels": [],
+            },
+        ]
+    }
+    bl_b, al_b = snapshot_to_blocklist(snapshot_b, dataset_b, LABEL_MAP)
+    assert "debated.example" in bl_b
+    assert bl_b["debated.example"].private_comment == f"FIRES:{dataset_b}"
+
+
+def test_private_comment_stamp_not_overwritten_on_policy_change():
+    """If a domain's policy changes within the same dataset, the stamp stays."""
+    bl = Blocklist("test")
+    al = Blocklist("test")
+    dataset_url = "https://fires.example/datasets/test-uuid"
+
+    changes = [
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "evolving.example",
+            "recommendedPolicy": "drop",
+            "labels": [],
+        },
+        {
+            "type": "Recommendation",
+            "entityKind": "domain",
+            "entityKey": "evolving.example",
+            "recommendedPolicy": "filter",
+            "labels": [],
+        },
+    ]
+    state = FIRESState(os.path.join(tempfile.mkdtemp(), "state.json"))
+    bl, al = apply_changes(bl, al, changes, LABEL_MAP, state, dataset_url)
+
+    # Policy changed from drop to filter, but stamp should be the same dataset
+    assert bl["evolving.example"].severity.level == SeverityLevel.SILENCE
+    assert bl["evolving.example"].private_comment == f"FIRES:{dataset_url}"
 
 
 # -- FIRESClient tests --

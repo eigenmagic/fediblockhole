@@ -296,7 +296,8 @@ def fetch_from_fires(
     log.info("Fetching domain blocks from FIRES datasets...")
     blocklists = []
     allowlists = []
-    trusted_retractions = set()
+    # Map of domain -> set of dataset URLs that retracted it
+    trusted_retractions = {}
 
     if not fires_sources:
         return blocklists, allowlists, trusted_retractions
@@ -310,13 +311,13 @@ def fetch_from_fires(
         if source_idx > 0:
             time.sleep(2)
 
-        if "url" not in source:
+        # Accept both 'dataset' (preferred) and 'url' (legacy) keys
+        dataset_url = source.get("dataset", source.get("url", "")).rstrip("/")
+        if not dataset_url:
             log.warning(
-                "FIRES: source must have a 'url' key with the full dataset URL. Skipping."
+                "FIRES: source must have a 'dataset' key with the full dataset URL. Skipping."
             )
             continue
-
-        dataset_url = source["url"].rstrip("/")
         max_severity = source.get("max_severity", "suspend")
         ignore_accept = source.get("ignore_accept", False)
         honor_retractions = source.get("retractions", False)
@@ -332,9 +333,8 @@ def fetch_from_fires(
                 allowlists.append(al)
 
             if honor_retractions:
-                trusted_retractions.update(
-                    state.get_retractions(dataset_url)
-                )
+                for domain in state.get_retractions(dataset_url):
+                    trusted_retractions.setdefault(domain, set()).add(dataset_url)
 
             if save_intermediate:
                 save_intermediate_blocklist(bl, savedir, export_fields)
@@ -772,7 +772,7 @@ def push_blocklist(
     scheme: str = "https",
     override_private_comment: str = None,
     apply_retractions: bool = False,
-    fires_retractions: set = None,
+    fires_retractions: dict = None,
 ):
     """Push a blocklist to a remote instance.
 
@@ -845,7 +845,12 @@ def push_blocklist(
                 log.info(f"Old block definition: {oldblock}")
                 log.info(f"Pushing new block definition: {newblock}")
                 blockdata = oldblock.copy()
-                blockdata.update(newblock)
+                # Preserve the existing private_comment on the server —
+                # we only stamp private_comment when creating a block,
+                # not when updating one.
+                update_block = newblock._asdict()
+                update_block.pop('private_comment', None)
+                blockdata.update(DomainBlock(**update_block))
                 log.debug(f"Block as dict: {blockdata._asdict()}")
 
                 if not dryrun:
@@ -924,25 +929,48 @@ def push_blocklist(
             else:
                 log.debug("No retracted blocks to remove.")
 
-    # FIRES-sourced retractions: remove blocks from trusted feeds
-    # These don't require override_private_comment — if a trusted FIRES
-    # source says "retract this" and nothing else in the merged list
-    # counters it, the block gets removed regardless of who added it.
+    # FIRES-sourced retractions: remove blocks from trusted feeds.
+    # Only removes blocks that were originally added by the same FIRES dataset
+    # that issued the retraction, identified by matching 'FIRES:{dataset_url}'
+    # in the private_comment. This prevents dataset A's retraction from
+    # removing dataset B's block.
     if fires_retractions:
         log.info(
             f"Checking {len(fires_retractions)} FIRES retractions "
             f"against {host}..."
         )
         removed = 0
-        for domain, serverblock in serverblocks.items():
-            if domain not in fires_retractions:
+        for domain, retracting_datasets in fires_retractions.items():
+            if domain not in serverblocks:
                 continue
+            serverblock = serverblocks[domain]
+
             # If this domain is still in the merged blocklist (another
             # source still recommends it), don't remove it
             if domain in blocklist:
                 log.debug(
                     f"FIRES retraction for {domain} countered by "
                     f"another source, keeping block."
+                )
+                continue
+
+            # Check if this block was added by one of the datasets
+            # that is now retracting it
+            private_comment = getattr(serverblock, 'private_comment', '') or ''
+            if private_comment.startswith('FIRES:'):
+                stamped_dataset = private_comment[len('FIRES:'):]
+                if stamped_dataset not in retracting_datasets:
+                    log.debug(
+                        f"FIRES retraction for {domain}: block is from "
+                        f"{stamped_dataset}, not from retracting dataset(s). Skipping."
+                    )
+                    continue
+            elif override_private_comment and private_comment == override_private_comment:
+                # Added by FediBlockHole generally (pre-FIRES stamp era), allow retraction
+                pass
+            else:
+                log.debug(
+                    f"FIRES retraction for {domain}: block not from FIRES, skipping."
                 )
                 continue
 

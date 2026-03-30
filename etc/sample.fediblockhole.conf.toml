@@ -25,21 +25,22 @@ blocklist_url_sources = [
 ]
 
 # List of FIRES dataset sources to read from.
-# Each entry must have a 'url' key with the full dataset URL.
+# Each entry must have a 'dataset' key with the full dataset URL.
 # The dataset URL is the canonical identifier per the FIRES spec.
 #
 # FIRES policies are mapped to Mastodon severities:
-#   drop/reject -> suspend, filter -> silence
+#   drop/reject -> suspend, filter -> silence, accept -> remove block
 # Each dataset counts as one source for threshold calculations.
 #
 # Optional per-source keys:
 #   max_severity   -- cap the highest severity applied (default: 'suspend')
-#   ignore_accept  -- skip 'accept' policy entries (default: false)
+#   ignore_accept  -- don't add accept entries to allowlist (default: false)
+#                     note: accept still removes blocks from this dataset
 #   retractions    -- honor retractions from this source (default: false)
 blocklist_fires_sources = [
-  # { url = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' },
-  # { url = 'https://fires.example/datasets/019d3565-f022-777b-abbc-aabbccddeeff', max_severity = 'silence' },
-  # { url = 'https://trusted-fires.example/datasets/uuid', retractions = true },
+  # { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' },
+  # { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-aabbccddeeff', max_severity = 'silence' },
+  # { dataset = 'https://trusted-fires.example/datasets/uuid', retractions = true },
 ]
 
 ## Path to the FIRES state file for tracking change cursors and retractions

@@ -425,14 +425,14 @@ in `threshold` of those 5 sources to be included in the merged blocklist.
 ### Configuration
 
 Add FIRES sources to your config file using the `blocklist_fires_sources` list.
-Each entry must have a `url` key pointing to the full dataset URL. The dataset
+Each entry must have a `dataset` key pointing to the full dataset URL. The dataset
 URL is the canonical identifier per the FIRES spec.
 
 ```toml
 blocklist_fires_sources = [
-  { url = 'https://fires.example/datasets/019d3565-f022-abbc-c43d649f294b' },
-  { url = 'https://fires.example/datasets/019d3565-aabb-ccdd-eeff-112233445566', max_severity = 'silence' },
-  { url = 'https://trusted-fires.example/datasets/uuid', retractions = true },
+  { dataset = 'https://fires.example/datasets/019d3565-f022-abbc-c43d649f294b' },
+  { dataset = 'https://fires.example/datasets/019d3565-aabb-ccdd-eeff-112233445566', max_severity = 'silence' },
+  { dataset = 'https://trusted-fires.example/datasets/uuid', retractions = true },
 ]
 ```
 
@@ -450,7 +450,7 @@ FIRES datasets are public, so no authentication is required to read them.
 Optional per-source settings:
 
  - `max_severity`: Cap the maximum severity applied (e.g., `'silence'`). Defaults to `'suspend'`.
- - `ignore_accept`: When `true`, silently skip any `accept` policies from this source. Defaults to `false`.
+ - `ignore_accept`: When `true`, `accept` policies won't be added to the allowlist. However, `accept` still removes any block that this dataset previously added — it acts as an implicit retraction. Defaults to `false`.
  - `retractions`: When `true`, honor retractions from this source by removing blocks from your instance. See the Retractions section below. Defaults to `false`.
 
 ### State tracking and retractions
@@ -484,7 +484,7 @@ set `ignore_accept = true` on the source:
 
 ```toml
 blocklist_fires_sources = [
-  { url = 'https://fires.example/datasets/uuid', ignore_accept = true },
+  { dataset = 'https://fires.example/datasets/uuid', ignore_accept = true },
 ]
 ```
 
@@ -492,7 +492,7 @@ With `ignore_accept` enabled, `accept` recommendations are silently skipped.
 Block recommendations (`drop`, `reject`, `filter`) and retractions still work
 normally.
 
-### Retractions: removing blocks that are no longer recommended
+### Retractions: removing data that is no longer recommended or advised
 
 Historically, FediBlockHole has been additive — it adds and updates blocks but
 never removes them. This is safe but means blocks stay on your instance forever,
@@ -505,18 +505,21 @@ There are two retraction mechanisms, and they can be used together:
 
 #### Source-level retractions (`retractions = true`)
 
-This is the FIRES-native approach. When a trusted FIRES source explicitly
-retracts a domain, the block is removed from your instance — **regardless of
-who originally added it** — as long as no other source in your merged list still
-recommends blocking it.
+This is the FIRES-native approach. When a trusted FIRES source retracts a
+domain (either via an explicit `Retraction` or an `accept` recommendation),
+the block is removed from your instance — but only if that block was originally
+added by the same dataset. A retraction from dataset A won't remove a block
+that dataset B added.
 
-This is dataset-level trust: you're saying "I trust this feed's judgment,
-including its judgment that something should come off."
+Blocks created from FIRES datasets are stamped with `FIRES:{dataset_url}` in
+the `private_comment` field. Retraction removal checks this stamp to confirm
+ownership before acting. If no other source in your merged list still recommends
+blocking the domain, the block is removed.
 
 ```toml
 blocklist_fires_sources = [
-  { url = 'https://fires.trusted.example/datasets/uuid-1', retractions = true },
-  { url = 'https://other-fires.example/datasets/uuid-2', retractions = true },
+  { dataset = 'https://fires.trusted.example/datasets/uuid-1', retractions = true },
+  { dataset = 'https://other-fires.example/datasets/uuid-2', retractions = true },
 ]
 ```
 
@@ -566,8 +569,8 @@ retractions — it just means no new changes are processed that run.
 
 | | Source retractions | General retractions |
 |---|---|---|
-| Trigger | FIRES dataset explicitly retracts a domain | Domain falls out of all sources |
-| Scope | Removes any matching block on the instance | Only removes blocks FediBlockHole added |
+| Trigger | FIRES dataset retracts or accepts a domain | Domain falls out of all sources |
+| Scope | Only removes blocks added by the retracting dataset | Only removes blocks FediBlockHole added |
 | Requires `override_private_comment` | No | Yes |
 | Requires `retractions = true` on source | Yes | No (global or per-destination) |
 | Works with CSV/instance sources | No (FIRES only) | Yes (any source) |

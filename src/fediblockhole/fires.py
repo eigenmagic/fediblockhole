@@ -334,31 +334,31 @@ def snapshot_to_blocklist(
         # Map FIRES policy to Mastodon severity
         policy = item.get("recommendedPolicy", "drop")
 
-        # Accept policy -> allowlist (unless ignored)
-        if policy in ALLOW_POLICIES:
-            if not ignore_accept:
-                allowlist.blocks[domain] = DomainBlock(
-                    domain=domain,
-                    severity="noop",
-                    public_comment=build_public_comment(
-                        item.get("labels", []), label_map,
-                        item.get("comment", "")
-                    ),
-                )
-            continue
-
-        severity = fires_policy_to_severity(policy)
-
-        # Build a comment from labels and optional freeform comment
         labels = item.get("labels", [])
         public_comment = build_public_comment(
             labels, label_map, item.get("comment", "")
         )
 
+        # Accept policy: domain should not be blocked.
+        # An accept is effectively a retraction of any previous block.
+        # If ignore_accept is set, we skip the allowlist entry but
+        # still don't create a block for it.
+        if policy in ALLOW_POLICIES:
+            if not ignore_accept:
+                allowlist.blocks[domain] = DomainBlock(
+                    domain=domain,
+                    severity="noop",
+                    public_comment=public_comment,
+                )
+            continue
+
+        severity = fires_policy_to_severity(policy)
+
         block = DomainBlock(
             domain=domain,
             severity=severity,
             public_comment=public_comment,
+            private_comment=f"FIRES:{origin}",
         )
 
         # Apply max_severity cap
@@ -384,9 +384,14 @@ def apply_changes(
 ) -> tuple:
     """Apply a list of FIRES change items to existing blocklist and allowlist.
     
-    Recommendations with accept policy go to the allowlist.
-    Other recommendations add/update blocklist entries.
-    Retractions remove entries from both lists and record in state.
+    Changes are applied in order and are overwrites, not merges. If the same
+    domain appears multiple times, the last entry wins. For example:
+      drop -> filter -> accept
+    results in the domain being accepted (not blocked), with no filters.
+    
+    Recommendations with accept policy remove blocks and optionally add
+    to the allowlist. Other recommendations create/overwrite blocklist
+    entries. Retractions remove entries from both lists.
     
     @param blocklist: The existing blocklist to modify
     @param allowlist: The existing allowlist to modify
@@ -415,22 +420,25 @@ def apply_changes(
             )
 
             if policy in ALLOW_POLICIES:
+                # Accept is an implicit retraction — always remove from blocklist,
+                # even when ignore_accept is set. The domain should not be blocked.
+                if domain in blocklist.blocks:
+                    log.info(f"FIRES accept: removing block for {domain}")
+                    del blocklist.blocks[domain]
                 if not ignore_accept:
-                    # Accept -> allowlist, remove from blocklist if present
                     allowlist.blocks[domain] = DomainBlock(
                         domain=domain,
                         severity="noop",
                         public_comment=public_comment,
                     )
-                    if domain in blocklist.blocks:
-                        del blocklist.blocks[domain]
             else:
-                # Block recommendation
+                # Block recommendation — overwrites any previous state
                 severity = fires_policy_to_severity(policy)
                 block = DomainBlock(
                     domain=domain,
                     severity=severity,
                     public_comment=public_comment,
+                    private_comment=f"FIRES:{dataset_url}",
                 )
                 max_sev = BlockSeverity(max_severity)
                 if block.severity > max_sev:
