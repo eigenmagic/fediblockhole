@@ -488,9 +488,10 @@ blocklist_fires_sources = [
 ]
 ```
 
-With `ignore_accept` enabled, `accept` recommendations are silently skipped.
-Block recommendations (`drop`, `reject`, `filter`) and retractions still work
-normally.
+With `ignore_accept` enabled, `accept` recommendations still remove any block
+that this dataset previously added (since accept is an implicit retraction),
+but the domain won't be added to the allowlist. This means other sources can
+still block the domain without the accept overriding them.
 
 ### Retractions: removing data that is no longer recommended or advised
 
