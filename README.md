@@ -29,6 +29,7 @@ cost.
  - Read domain block lists from arbitrary URLs, including local files.
  - Supports CSV and JSON format blocklists
  - Supports RapidBlock CSV and JSON format blocklists
+ - Consume moderation recommendations from [FIRES](https://github.com/fedimod/fires) datasets, with support for retractions, labels, and incremental polling
 
 ### Blocklist Export/Push
 
@@ -184,10 +185,11 @@ Or you can use the default location of `/etc/default/fediblockhole.conf.toml`.
 
 As the filename suggests, FediBlockHole uses TOML syntax.
 
-There are 4 key sections:
+There are 5 key sections:
  
- 1. `blocklist_urls_sources`: A list of URLs to read blocklists from
+ 1. `blocklist_url_sources`: A list of URLs to read blocklists from
  1. `blocklist_instance_sources`: A list of Mastodon instances to read blocklists from via API
+ 1. `blocklist_fires_sources`: A list of FIRES servers/datasets to read moderation data from
  1. `blocklist_instance_destinations`: A list of Mastodon instances to write blocklists to via API
  1. `allowlist_url_sources`: A list of URLs to read allowlists from
 
@@ -380,6 +382,210 @@ times to allow multiple domains.
 
 It is probably wise to include your own instance domain in an allowlist so you
 don't accidentally defederate from yourself.
+
+## FIRES Integration
+
+FediBlockHole can consume moderation data from [FIRES](https://github.com/fedimod/fires)
+(Fediverse Intelligence Replication Endpoint Server) datasets. FIRES is an open
+protocol for sharing moderation recommendations across the Fediverse, providing
+structured data with labels, policies, change tracking, and retractions.
+
+### How it works
+
+FIRES datasets publish moderation recommendations as structured data. Each
+recommendation includes a domain, a policy (`drop`, `reject`, `filter`, or
+`accept`), and optional labels describing why the recommendation exists.
+
+FediBlockHole maps these to Mastodon block semantics:
+
+ - **drop** and **reject** become `suspend` blocks
+ - **filter** becomes a `silence` block
+ - **accept** feeds into the allowlist pipeline (see below)
+ - **Retractions** remove a domain from that source's contribution
+
+Only recommendations with `entityKind` of `domain` are processed. FIRES also
+supports `actor`-level recommendations, but Mastodon's domain block API operates
+at the domain level, so actor recommendations are silently skipped.
+
+FIRES changes come in four types, each handled differently:
+
+ - **Recommendation**: Creates or updates a block. This is the actionable one.
+ - **Advisory**: Informational only — no block is created. If a domain is
+   downgraded from Recommendation to Advisory, it effectively falls out of
+   the blocklist (a soft retraction without fully removing it from the dataset).
+ - **Retraction**: The source explicitly says "stop blocking this." The domain
+   is removed from the source's contribution and, if `retractions = true`,
+   can be deleted from the server.
+ - **Tombstone**: Historical record cleanup. Silently skipped.
+
+Each FIRES dataset counts as one source for threshold calculations. If you
+subscribe to 3 FIRES datasets and 2 CSV blocklists, a domain needs to appear
+in `threshold` of those 5 sources to be included in the merged blocklist.
+
+### Configuration
+
+Add FIRES sources to your config file using the `blocklist_fires_sources` list.
+Each entry must have a `dataset` key pointing to the full dataset URL. The dataset
+URL is the canonical identifier per the FIRES spec.
+
+```toml
+blocklist_fires_sources = [
+  { dataset = 'https://fires.example/datasets/019d3565-f022-abbc-c43d649f294b' },
+  { dataset = 'https://fires.example/datasets/019d3565-aabb-ccdd-eeff-112233445566', max_severity = 'silence' },
+  { dataset = 'https://trusted-fires.example/datasets/uuid', retractions = true },
+]
+```
+
+The dataset URL is opaque — FediBlockHole fetches it with an `Accept: application/ld+json`
+header and the dataset metadata tells it where the snapshot and changes endpoints are.
+No path construction, no assumptions about URL structure.
+
+Label names are resolved by fetching each label URL found in the snapshot data.
+FIRES snapshots include full label URLs (e.g., `http://fires.example/labels/uuid`)
+which are individually fetchable resources. No separate labels collection endpoint
+is needed.
+
+FIRES datasets are public, so no authentication is required to read them.
+
+Optional per-source settings:
+
+ - `max_severity`: Cap the maximum severity applied (e.g., `'silence'`). Defaults to `'suspend'`.
+ - `ignore_accept`: When `true`, `accept` policies won't be added to the allowlist. However, `accept` still removes any block that this dataset previously added — it acts as an implicit retraction. Defaults to `false`.
+ - `retractions`: When `true`, honor retractions from this source by removing blocks from your instance. See the Retractions section below. Defaults to `false`.
+ - `language`: Preferred language for label names from `nameMap`. FIRES labels support multilingual names; this selects which translation to use in block comments. Falls back to English, then any available language. Defaults to `'en'`.
+
+### State tracking and retractions
+
+FediBlockHole maintains a JSON state file to track its position in each
+dataset's changes feed. On the first run, it fetches the full snapshot. On
+subsequent runs, it polls only for new changes since the last run.
+
+When a FIRES dataset publishes a **retraction** (meaning "we no longer recommend
+blocking this domain"), FediBlockHole removes that domain from the source's
+contribution to the merge. If other sources still recommend blocking it, the
+block remains. Retractions only affect the source that issued them.
+
+The state file defaults to `~/.fediblockhole/fires_state.json`. You can override
+this with the `fires_state_file` config option or the `--fires-state-file`
+commandline flag.
+
+### The `accept` policy
+
+The FIRES protocol includes an `accept` policy for recommending that a domain
+*should* be federated with. FediBlockHole handles `accept` the same way it
+handles its existing allowlists: domains with an `accept` recommendation are
+removed from the merged blocklist before it is pushed to instances.
+
+This means an `accept` from a FIRES dataset acts as an override, the same as
+adding a domain to a CSV allowlist. It does not call any instance API to
+explicitly allow the domain — it simply prevents it from being blocked.
+
+If you don't want FIRES `accept` policies to influence your blocklist at all,
+set `ignore_accept = true` on the source:
+
+```toml
+blocklist_fires_sources = [
+  { dataset = 'https://fires.example/datasets/uuid', ignore_accept = true },
+]
+```
+
+With `ignore_accept` enabled, `accept` recommendations still remove any block
+that this dataset previously added (since accept is an implicit retraction),
+but the domain won't be added to the allowlist. This means other sources can
+still block the domain without the accept overriding them.
+
+### Retractions: removing data that is no longer recommended or advised
+
+Historically, FediBlockHole has been additive — it adds and updates blocks but
+never removes them. This is safe but means blocks stay on your instance forever,
+even if every source stops recommending them.
+
+FIRES changes this by providing the state that blocklists never had. When a
+FIRES dataset retracts a recommendation, FediBlockHole can now act on it.
+
+There are two retraction mechanisms, and they can be used together:
+
+#### Source-level retractions (`retractions = true`)
+
+This is the FIRES-native approach. When a trusted FIRES source retracts a
+domain (either via an explicit `Retraction` or an `accept` recommendation),
+the block is removed from your instance — but only if that block was originally
+added by the same dataset. A retraction from dataset A won't remove a block
+that dataset B added.
+
+Blocks created from FIRES datasets are stamped with `FIRES:{dataset_url}` in
+the `private_comment` field. Retraction removal checks this stamp to confirm
+ownership before acting. If no other source in your merged list still recommends
+blocking the domain, the block is removed.
+
+```toml
+blocklist_fires_sources = [
+  { dataset = 'https://fires.trusted.example/datasets/uuid-1', retractions = true },
+  { dataset = 'https://other-fires.example/datasets/uuid-2', retractions = true },
+]
+```
+
+The safeguard is the merge: if *any* other source (FIRES, CSV, instance) still
+recommends blocking that domain, the retraction is countered and the block stays.
+
+#### General retractions (`apply_retractions = true`)
+
+This is a broader mechanism that works with any source type, not just FIRES.
+When enabled, blocks that exist on your instance but are no longer in *any*
+source are removed — but only if they were originally added by FediBlockHole.
+
+This requires `override_private_comment` to be set, so FediBlockHole can
+identify its own blocks by matching the stamp in `private_comment`. Blocks added
+manually by the admin (with a different or no private comment) are never touched.
+
+```toml
+override_private_comment = 'Added by FediBlockHole'
+apply_retractions = true
+```
+
+This can also be set per-destination instance:
+
+```toml
+blocklist_instance_destinations = [
+  { domain = 'myinstance.social', token = '...', apply_retractions = true },
+]
+```
+
+#### A note on general retractions and reliability
+
+The general `apply_retractions` mechanism compares the merged list against what's
+on your server. If a source goes offline or a URL is temporarily unreachable,
+domains from that source will be absent from the merge, and `apply_retractions`
+could remove them from your server even though nothing was actually retracted.
+
+For this reason, it's often best to write the merged blocklist to a file first
+(`blocklist_savefile`), review it, and then apply it in a separate run. Reading
+from the filesystem is reliable — remote sources are not.
+
+FIRES source-level retractions (`retractions = true`) don't have this problem.
+They only act on domains that a FIRES dataset *explicitly* retracted via a
+`Retraction` change entry. A dataset being unreachable doesn't generate
+retractions — it just means no new changes are processed that run.
+
+#### How they differ
+
+| | Source retractions | General retractions |
+|---|---|---|
+| Trigger | FIRES dataset retracts or accepts a domain | Domain falls out of all sources |
+| Scope | Only removes blocks added by the retracting dataset | Only removes blocks FediBlockHole added |
+| Requires `override_private_comment` | No | Yes |
+| Requires `retractions = true` on source | Yes | No (global or per-destination) |
+| Works with CSV/instance sources | No (FIRES only) | Yes (any source) |
+
+Both mechanisms respect the merge: if any source still recommends blocking a
+domain, the block stays. Use `--dryrun` to preview what would be removed
+without actually deleting anything.
+
+### Commandline flags
+
+ - `--no-fetch-fires`: Skip fetching from FIRES datasets even if configured.
+ - `--fires-state-file <path>`: Override the state file location.
+ - `--apply-retractions`: Enable retraction-based block removal (see above).
 
 ## More advanced configuration
 

@@ -1,0 +1,41 @@
+{
+  "@context": "https://fires.fedimod.org/ns",
+  "id": "http://localhost:4444/datasets/test-dataset-001/changes?since=019d358a-a17e-76ad-abbe-052cd3048c98",
+  "partOf": "http://localhost:4444/datasets/test-dataset-001/changes",
+  "type": "OrderedCollectionPage",
+  "dataset": "http://localhost:4444/datasets/test-dataset-001",
+  "totalItems": 3,
+  "orderedItems": [
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000010",
+      "type": "Recommendation",
+      "published": "2026-03-28T18:00:00Z",
+      "entityKind": "domain",
+      "entityKey": "newbad.example",
+      "labels": ["http://localhost:4444/labels/label-uuid-disinformation"],
+      "recommendedPolicy": "drop",
+      "recommendedFilters": []
+    },
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000011",
+      "type": "Retraction",
+      "published": "2026-03-28T18:10:00Z",
+      "entityKind": "domain",
+      "entityKey": "spammer.example"
+    },
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000012",
+      "type": "Recommendation",
+      "published": "2026-03-28T18:20:00Z",
+      "entityKind": "domain",
+      "entityKey": "troll.example",
+      "labels": [
+        "http://localhost:4444/labels/label-uuid-troll",
+        "http://localhost:4444/labels/label-uuid-harassment",
+        "http://localhost:4444/labels/label-uuid-hate-speech"
+      ],
+      "recommendedPolicy": "drop",
+      "recommendedFilters": []
+    }
+  ]
+}

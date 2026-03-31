@@ -1,0 +1,62 @@
+{
+  "@context": "https://fires.fedimod.org/ns",
+  "id": "http://localhost:4444/datasets/test-dataset-001/snapshot",
+  "type": "Collection",
+  "summary": "Snapshot for Test Dataset",
+  "dataset": "http://localhost:4444/datasets/test-dataset-001",
+  "totalItems": 5,
+  "updated": "2026-03-28T17:42:51Z",
+  "changes": "http://localhost:4444/datasets/test-dataset-001/changes?since=019d358a-a17e-76ad-abbe-052cd3048c98",
+  "orderedItems": [
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000001",
+      "type": "Recommendation",
+      "published": "2026-03-28T17:00:00Z",
+      "entityKind": "domain",
+      "entityKey": "badactor.example",
+      "labels": ["http://localhost:4444/labels/label-uuid-hate-speech"],
+      "recommendedPolicy": "drop",
+      "recommendedFilters": []
+    },
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000002",
+      "type": "Recommendation",
+      "published": "2026-03-28T17:10:00Z",
+      "entityKind": "domain",
+      "entityKey": "spammer.example",
+      "labels": ["http://localhost:4444/labels/label-uuid-spam"],
+      "recommendedPolicy": "filter",
+      "recommendedFilters": ["auto-cw", "prevent-trending"]
+    },
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000003",
+      "type": "Recommendation",
+      "published": "2026-03-28T17:20:00Z",
+      "entityKind": "domain",
+      "entityKey": "csam.example",
+      "labels": ["http://localhost:4444/labels/label-uuid-csam"],
+      "recommendedPolicy": "reject",
+      "recommendedFilters": []
+    },
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000004",
+      "type": "Recommendation",
+      "published": "2026-03-28T17:30:00Z",
+      "entityKind": "domain",
+      "entityKey": "troll.example",
+      "labels": [
+        "http://localhost:4444/labels/label-uuid-troll",
+        "http://localhost:4444/labels/label-uuid-harassment"
+      ],
+      "recommendedPolicy": "filter",
+      "recommendedFilters": ["auto-cw", "auto-unlisted"]
+    },
+    {
+      "id": "http://localhost:4444/datasets/test-dataset-001/changes/019d3565-f022-777b-abbc-000000000005",
+      "type": "Retraction",
+      "published": "2026-03-28T17:40:00Z",
+      "entityKind": "domain",
+      "entityKey": "redeemed.example"
+    }
+  ]
+}

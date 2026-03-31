@@ -17,6 +17,7 @@ import toml
 
 from .blocklists import BlockAuditList, Blocklist, parse_blocklist
 from .const import BlockAudit, BlockSeverity, DomainBlock
+from .fires import FIRESState, fetch_fires_blocklist
 
 __version__ = version("fediblockhole")
 
@@ -96,6 +97,21 @@ def sync_blocklists(conf: argparse.Namespace):
             )
         )
 
+    # Fetch blocklists (and allowlists) from FIRES datasets
+    fires_allowlists = []
+    fires_retractions = set()  # domains retracted by trusted FIRES sources
+    if not conf.no_fetch_fires:
+        fires_blocks, fires_allows, fires_retractions = fetch_from_fires(
+            conf.blocklist_fires_sources,
+            conf.fires_state_file,
+            conf.save_intermediate,
+            conf.savedir,
+            export_fields,
+            conf.dryrun,
+        )
+        blocklists.extend(fires_blocks)
+        fires_allowlists.extend(fires_allows)
+
     # Merge blocklists into an update dict
     merged = merge_blocklists(
         blocklists,
@@ -107,6 +123,11 @@ def sync_blocklists(conf: argparse.Namespace):
 
     # Remove items listed in allowlists, if any
     allowlists = fetch_allowlists(conf)
+    # fetch_allowlists returns a list of Blocklists or an empty Blocklist
+    if isinstance(allowlists, Blocklist):
+        allowlists = [allowlists] if len(allowlists) > 0 else []
+    # Include any allowlists from FIRES 'accept' policies
+    allowlists.extend(fires_allowlists)
     merged = apply_allowlists(merged, conf, allowlists)
 
     # Save the final mergelist, if requested
@@ -124,6 +145,10 @@ def sync_blocklists(conf: argparse.Namespace):
             max_followed_severity = BlockSeverity(
                 dest.get("max_followed_severity", "silence")
             )
+            apply_retractions = dest.get(
+                "apply_retractions",
+                conf.apply_retractions
+            )
             push_blocklist(
                 token,
                 target,
@@ -133,6 +158,8 @@ def sync_blocklists(conf: argparse.Namespace):
                 max_followed_severity,
                 scheme,
                 conf.override_private_comment,
+                apply_retractions,
+                fires_retractions,
             )
 
 
@@ -236,6 +263,93 @@ def fetch_from_instances(
         if save_intermediate:
             save_intermediate_blocklist(bl, savedir, export_fields)
     return blocklists
+
+
+def fetch_from_fires(
+    fires_sources: list,
+    state_file: str = None,
+    save_intermediate: bool = False,
+    savedir: str = None,
+    export_fields: list = EXPORT_FIELDS,
+    dryrun: bool = False,
+) -> list:
+    """Fetch blocklists from FIRES datasets.
+
+    Each source is a dict with a 'dataset' key pointing to the full dataset URL.
+    The dataset URL is the canonical identifier per the FIRES spec.
+
+    Example config:
+      { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' }
+
+    Optional per-source keys:
+      max_severity   -- cap the highest severity (default: 'suspend')
+      ignore_accept  -- skip 'accept' policy entries (default: false)
+      retractions    -- honor retractions from this source (default: false)
+
+    @param fires_sources: List of FIRES source configs from the TOML file
+    @param state_file: Path to the FIRES state file for cursor tracking
+    @param save_intermediate: Whether to save intermediate blocklists
+    @param savedir: Directory to save intermediate blocklists
+    @param export_fields: Fields to include when saving intermediate lists
+    @returns: Tuple of (blocklists, allowlists, trusted_retractions)
+    """
+    log.info("Fetching domain blocks from FIRES datasets...")
+    blocklists = []
+    allowlists = []
+    # Map of domain -> set of dataset URLs that retracted it
+    trusted_retractions = {}
+
+    if not fires_sources:
+        return blocklists, allowlists, trusted_retractions
+
+    from .fires import DEFAULT_STATE_FILE
+    state = FIRESState(state_file or DEFAULT_STATE_FILE)
+
+    import time
+
+    for source_idx, source in enumerate(fires_sources):
+        if source_idx > 0:
+            time.sleep(2)
+
+        if "dataset" not in source:
+            log.warning(
+                "FIRES: source must have a 'dataset' key with the full dataset URL. Skipping."
+            )
+            continue
+
+        dataset_url = source["dataset"].rstrip("/")
+        max_severity = source.get("max_severity", "suspend")
+        ignore_accept = source.get("ignore_accept", False)
+        honor_retractions = source.get("retractions", False)
+        language = source.get("language", "en")
+
+        try:
+            bl, al = fetch_fires_blocklist(
+                dataset_url, state,
+                max_severity=max_severity,
+                ignore_accept=ignore_accept,
+                language=language,
+            )
+            blocklists.append(bl)
+            if len(al) > 0:
+                allowlists.append(al)
+
+            if honor_retractions:
+                for domain in state.get_retractions(dataset_url):
+                    trusted_retractions.setdefault(domain, set()).add(dataset_url)
+
+            if save_intermediate:
+                save_intermediate_blocklist(bl, savedir, export_fields)
+        except Exception as e:
+            log.error(f"FIRES: error fetching {dataset_url}: {e}")
+            continue
+
+    if not dryrun:
+        state.save()
+    else:
+        log.info("Dry run: not updating FIRES state file.")
+
+    return blocklists, allowlists, trusted_retractions
 
 
 def merge_blocklists(
@@ -659,15 +773,24 @@ def push_blocklist(
     max_followed_severity: BlockSeverity = BlockSeverity("silence"),
     scheme: str = "https",
     override_private_comment: str = None,
+    apply_retractions: bool = False,
+    fires_retractions: dict = None,
 ):
     """Push a blocklist to a remote instance.
 
     Updates existing entries if they exist, creates new blocks if they don't.
 
+    If `apply_retractions` is True, blocks that exist on the server but are
+    no longer in the merged blocklist will be removed — but only if they
+    were originally added by FediBlockHole (identified by matching the
+    `override_private_comment` stamp in `private_comment`).
+
     @param token: The Bearer token for OAUTH API authentication
     @param host: The instance host, FQDN or IP
     @param blocklist: A list of block definitions. They must include the domain.
     @param import_fields: A list of fields to import to the instances.
+    @param apply_retractions: If True, remove blocks we previously added that
+        are no longer in any source. Requires override_private_comment to be set.
     """
     log.info(f"Pushing blocklist to host {host} ...")
     # Fetch the existing blocklist from the instance
@@ -724,7 +847,12 @@ def push_blocklist(
                 log.info(f"Old block definition: {oldblock}")
                 log.info(f"Pushing new block definition: {newblock}")
                 blockdata = oldblock.copy()
-                blockdata.update(newblock)
+                # Preserve the existing private_comment on the server —
+                # we only stamp private_comment when creating a block,
+                # not when updating one.
+                update_block = newblock._asdict()
+                update_block.pop('private_comment', None)
+                blockdata.update(DomainBlock(**update_block))
                 log.debug(f"Block as dict: {blockdata._asdict()}")
 
                 if not dryrun:
@@ -763,6 +891,107 @@ def push_blocklist(
                 time.sleep(API_CALL_DELAY)
             else:
                 log.info("Dry run selected. Not adding block.")
+
+    # Apply retractions: remove blocks we added that are no longer recommended
+    if apply_retractions:
+        if not override_private_comment:
+            log.warning(
+                "apply_retractions is enabled but override_private_comment is not set. "
+                "Cannot safely identify which blocks were added by FediBlockHole. "
+                "Skipping retraction removal. Set override_private_comment to enable."
+            )
+        else:
+            log.info(f"Checking for retracted blocks to remove from {host}...")
+            removed = 0
+            for domain, serverblock in serverblocks.items():
+                # Only remove blocks that we originally added
+                if not hasattr(serverblock, 'private_comment'):
+                    continue
+                if serverblock.private_comment != override_private_comment:
+                    continue
+                # If this block is still in the merged list, keep it
+                if domain in blocklist:
+                    continue
+
+                # This block was added by us but is no longer recommended
+                log.info(
+                    f"Retraction: removing block for {domain} from {host} "
+                    f"(was added by FediBlockHole, no longer in any source)"
+                )
+                if not dryrun:
+                    delete_block(token, host, serverblock.id, scheme)
+                    time.sleep(API_CALL_DELAY)
+                    removed += 1
+                else:
+                    log.info(f"Dry run: would remove block for {domain}")
+                    removed += 1
+
+            if removed:
+                log.info(f"Removed {removed} retracted blocks from {host}")
+            else:
+                log.debug("No retracted blocks to remove.")
+
+    # FIRES-sourced retractions: remove blocks from trusted feeds.
+    # Only removes blocks that were originally added by the same FIRES dataset
+    # that issued the retraction, identified by matching 'FIRES:{dataset_url}'
+    # in the private_comment. This prevents dataset A's retraction from
+    # removing dataset B's block.
+    if fires_retractions:
+        log.info(
+            f"Checking {len(fires_retractions)} FIRES retractions "
+            f"against {host}..."
+        )
+        removed = 0
+        for domain, retracting_datasets in fires_retractions.items():
+            if domain not in serverblocks:
+                continue
+            serverblock = serverblocks[domain]
+
+            # If this domain is still in the merged blocklist (another
+            # source still recommends it), don't remove it
+            if domain in blocklist:
+                log.debug(
+                    f"FIRES retraction for {domain} countered by "
+                    f"another source, keeping block."
+                )
+                continue
+
+            # Check if this block was added by one of the datasets
+            # that is now retracting it
+            private_comment = getattr(serverblock, 'private_comment', '') or ''
+            if private_comment.startswith('FIRES:'):
+                stamped_dataset = private_comment[len('FIRES:'):]
+                if stamped_dataset not in retracting_datasets:
+                    log.debug(
+                        f"FIRES retraction for {domain}: block is from "
+                        f"{stamped_dataset}, not from retracting dataset(s). Skipping."
+                    )
+                    continue
+            elif override_private_comment and private_comment == override_private_comment:
+                # Added by FediBlockHole generally (pre-FIRES stamp era), allow retraction
+                pass
+            else:
+                log.debug(
+                    f"FIRES retraction for {domain}: block not from FIRES, skipping."
+                )
+                continue
+
+            log.info(
+                f"FIRES retraction: removing block for {domain} from {host} "
+                f"(retracted by trusted FIRES source, not in any other source)"
+            )
+            if not dryrun:
+                delete_block(token, host, serverblock.id, scheme)
+                time.sleep(API_CALL_DELAY)
+                removed += 1
+            else:
+                log.info(f"Dry run: would remove block for {domain}")
+                removed += 1
+
+        if removed:
+            log.info(
+                f"Removed {removed} FIRES-retracted blocks from {host}"
+            )
 
 
 def load_config(configfile: str):
@@ -948,6 +1177,17 @@ def augment_args(args, tomldata: str = None):
         conf.get("blocklist_instance_destinations", [])
     )
 
+    args.blocklist_fires_sources = conf.get("blocklist_fires_sources", [])
+
+    if not args.fires_state_file:
+        args.fires_state_file = conf.get("fires_state_file", None)
+
+    if not args.no_fetch_fires:
+        args.no_fetch_fires = conf.get("no_fetch_fires", False)
+
+    if not args.apply_retractions:
+        args.apply_retractions = conf.get("apply_retractions", False)
+
     return args
 
 
@@ -1040,6 +1280,25 @@ def setup_argparse():
         dest="no_fetch_instance",
         action="store_true",
         help="Don't fetch from instances, even if configured.",
+    )
+    ap.add_argument(
+        "--no-fetch-fires",
+        dest="no_fetch_fires",
+        action="store_true",
+        help="Don't fetch from FIRES datasets, even if configured.",
+    )
+    ap.add_argument(
+        "--fires-state-file",
+        dest="fires_state_file",
+        help="Path to FIRES state file for tracking change cursors.",
+    )
+    ap.add_argument(
+        "--apply-retractions",
+        dest="apply_retractions",
+        action="store_true",
+        help="Remove blocks from instances when they are no longer in any source. "
+             "Only removes blocks originally added by FediBlockHole "
+             "(identified by override_private_comment).",
     )
     ap.add_argument(
         "--no-push-instance",

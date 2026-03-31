@@ -24,6 +24,33 @@ blocklist_url_sources = [
 
 ]
 
+# List of FIRES dataset sources to read from.
+# Each entry must have a 'dataset' key with the full dataset URL.
+# The dataset URL is the canonical identifier per the FIRES spec.
+#
+# FIRES policies are mapped to Mastodon severities:
+#   drop/reject -> suspend, filter -> silence, accept -> remove block
+# Each dataset counts as one source for threshold calculations.
+#
+# Optional per-source keys:
+#   max_severity   -- cap the highest severity applied (default: 'suspend')
+#   ignore_accept  -- don't add accept entries to allowlist (default: false)
+#                     note: accept still removes blocks from this dataset
+#   retractions    -- honor retractions from this source (default: false)
+#   language       -- preferred language for label names (default: 'en')
+blocklist_fires_sources = [
+  # { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' },
+  # { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-aabbccddeeff', max_severity = 'silence' },
+  # { dataset = 'https://trusted-fires.example/datasets/uuid', retractions = true },
+]
+
+## Path to the FIRES state file for tracking change cursors and retractions
+## Defaults to ~/.fediblockhole/fires_state.json
+# fires_state_file = '/path/to/fires_state.json'
+
+## Don't fetch from FIRES datasets, even if they're defined above
+# no_fetch_fires = false
+
 ## These global allowlists override blocks from blocklists
 # These are the same format and structure as blocklists, but they take precedence
 allowlist_url_sources = [
@@ -86,7 +113,16 @@ blocklist_instance_destinations = [
 
 ## set an override private comment to be added when pushing a NEW block to an instance
 # this does not require importing private comments
-# override_private_comment = 'Added by Fediblock Sync'
+# When using apply_retractions, this stamp is used to identify which blocks
+# FediBlockHole added (so it only removes blocks it created, not manual ones).
+# override_private_comment = 'Added by FediBlockHole'
+
+## When enabled, blocks that were added by FediBlockHole but are no longer
+## in any source (due to FIRES retractions or sources dropping a domain)
+## will be removed from destination instances.
+## Requires override_private_comment to be set so we can identify our blocks.
+## Can also be set per-destination instance.
+# apply_retractions = false
 
 ## Set which fields we import
 ## 'domain' and 'severity' are always imported, these are additional
