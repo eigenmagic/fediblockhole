@@ -37,6 +37,7 @@ blocklist_url_sources = [
 #   ignore_accept  -- don't add accept entries to allowlist (default: false)
 #                     note: accept still removes blocks from this dataset
 #   retractions    -- honor retractions from this source (default: false)
+#   language       -- preferred language for label names (default: 'en')
 blocklist_fires_sources = [
   # { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-c43d649f294b' },
   # { dataset = 'https://fires.example/datasets/019d3565-f022-777b-abbc-aabbccddeeff', max_severity = 'silence' },

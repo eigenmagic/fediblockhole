@@ -452,6 +452,7 @@ Optional per-source settings:
  - `max_severity`: Cap the maximum severity applied (e.g., `'silence'`). Defaults to `'suspend'`.
  - `ignore_accept`: When `true`, `accept` policies won't be added to the allowlist. However, `accept` still removes any block that this dataset previously added — it acts as an implicit retraction. Defaults to `false`.
  - `retractions`: When `true`, honor retractions from this source by removing blocks from your instance. See the Retractions section below. Defaults to `false`.
+ - `language`: Preferred language for label names from `nameMap`. FIRES labels support multilingual names; this selects which translation to use in block comments. Falls back to English, then any available language. Defaults to `'en'`.
 
 ### State tracking and retractions
 

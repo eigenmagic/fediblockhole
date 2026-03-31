@@ -321,12 +321,14 @@ def fetch_from_fires(
         max_severity = source.get("max_severity", "suspend")
         ignore_accept = source.get("ignore_accept", False)
         honor_retractions = source.get("retractions", False)
+        language = source.get("language", "en")
 
         try:
             bl, al = fetch_fires_blocklist(
                 dataset_url, state,
                 max_severity=max_severity,
                 ignore_accept=ignore_accept,
+                language=language,
             )
             blocklists.append(bl)
             if len(al) > 0:

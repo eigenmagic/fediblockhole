@@ -227,7 +227,7 @@ def build_public_comment(labels: list, label_names: dict, comment: str = "") -> 
 _label_cache: dict = {}
 
 
-def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
+def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict, language: str = "en") -> dict:
     """Build a label ID -> name map by fetching each label URL from the snapshot.
     
     FIRES snapshots include full label URLs in each item's 'labels' array.
@@ -245,8 +245,8 @@ def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
             if isinstance(label_ref, str) and label_ref.startswith("http"):
                 label_urls.add(label_ref)
 
-    # Filter to only labels we haven't fetched yet
-    new_urls = [url for url in label_urls if url not in _label_cache]
+    # Filter to only labels we haven't fetched yet for this language
+    new_urls = [url for url in label_urls if f"{language}:{url}" not in _label_cache]
     if new_urls:
         log.info(f"FIRES: fetching {len(new_urls)} new labels ({len(label_urls) - len(new_urls)} cached)")
     else:
@@ -260,25 +260,29 @@ def build_label_map_from_snapshot(client: FIRESClient, snapshot: dict) -> dict:
             label_id = data.get("id", url)
             name_map = data.get("nameMap")
             if name_map and isinstance(name_map, dict):
-                name = name_map.get("en", name_map.get("en-US", ""))
+                name = name_map.get(language, name_map.get(f"{language}-US", ""))
+                if not name:
+                    # Fall back to English, then any available language
+                    name = name_map.get("en", name_map.get("en-US", ""))
                 if not name:
                     name = next(iter(name_map.values()), "")
             else:
                 name = data.get("name", "")
             if name:
-                _label_cache[url] = name
+                _label_cache[f"{language}:{url}"] = name
                 if label_id != url:
-                    _label_cache[label_id] = name
+                    _label_cache[f"{language}:{label_id}"] = name
         except Exception as e:
             log.warning(f"Could not fetch FIRES label {url}: {e}")
             slug = url.rstrip("/").split("/")[-1]
-            _label_cache[url] = slug
+            _label_cache[f"{language}:{url}"] = slug
 
     # Build the map for this snapshot from the cache
     label_map = {}
     for url in label_urls:
-        if url in _label_cache:
-            label_map[url] = _label_cache[url]
+        cache_key = f"{language}:{url}"
+        if cache_key in _label_cache:
+            label_map[url] = _label_cache[cache_key]
 
     return label_map
 
@@ -306,6 +310,21 @@ def snapshot_to_blocklist(
     if retractions is None:
         retractions = set()
 
+    # Validate snapshot type per JSON-LD / ActivityStreams spec
+    snapshot_type = snapshot.get("type", "")
+    if snapshot_type not in ("OrderedCollection", "OrderedCollectionPage", "Collection"):
+        log.warning(
+            f"FIRES: unexpected snapshot type '{snapshot_type}', "
+            f"expected OrderedCollection or OrderedCollectionPage"
+        )
+
+    # orderedItems is the correct key per AS2; 'items' would be wrong
+    if "items" in snapshot and "orderedItems" not in snapshot:
+        raise ValueError(
+            "FIRES snapshot uses 'items' instead of 'orderedItems'. "
+            "This is not valid for an OrderedCollection."
+        )
+
     blocklist = Blocklist(origin)
     allowlist = Blocklist(origin)
     items = snapshot.get("orderedItems", [])
@@ -332,7 +351,12 @@ def snapshot_to_blocklist(
             continue
 
         # Map FIRES policy to Mastodon severity
-        policy = item.get("recommendedPolicy", "drop")
+        policy = item.get("recommendedPolicy", "")
+
+        # No policy means the entry is informational only (e.g., Advisory)
+        # and the dataset producer hasn't determined an action yet.
+        if not policy:
+            continue
 
         labels = item.get("labels", [])
         public_comment = build_public_comment(
@@ -413,7 +437,12 @@ def apply_changes(
             continue
 
         if item_type == "Recommendation":
-            policy = item.get("recommendedPolicy", "drop")
+            policy = item.get("recommendedPolicy", "")
+
+            # No policy means informational only — skip it
+            if not policy:
+                continue
+
             labels = item.get("labels", [])
             public_comment = build_public_comment(
                 labels, label_map, item.get("comment", "")
@@ -471,6 +500,7 @@ def fetch_fires_blocklist(
     max_severity: str = "suspend",
     max_pages: int = 50,
     ignore_accept: bool = False,
+    language: str = "en",
 ) -> tuple:
     """Fetch a blocklist and allowlist from a FIRES dataset.
     
@@ -501,7 +531,7 @@ def fetch_fires_blocklist(
         snapshot = client.get_snapshot()
 
         # Build label names from the label URLs in the snapshot
-        label_map = build_label_map_from_snapshot(client, snapshot)
+        label_map = build_label_map_from_snapshot(client, snapshot, language)
 
         blocklist, allowlist = snapshot_to_blocklist(
             snapshot, dataset_url, label_map, max_severity, retractions,
@@ -524,7 +554,7 @@ def fetch_fires_blocklist(
         snapshot = client.get_snapshot()
 
         # Build label names from the label URLs in the snapshot
-        label_map = build_label_map_from_snapshot(client, snapshot)
+        label_map = build_label_map_from_snapshot(client, snapshot, language)
 
         blocklist, allowlist = snapshot_to_blocklist(
             snapshot, dataset_url, label_map, max_severity, retractions,
