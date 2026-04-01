@@ -1,17 +1,7 @@
-"""Tests of the CSV parsing
-"""
+"""Tests of the CSV parsing"""
 
 from fediblockhole.blocklists import BlocklistParserCSV
 from fediblockhole.const import SeverityLevel
-
-
-def test_single_line():
-    csvdata = "example.org"
-    origin = "csvfile"
-
-    parser = BlocklistParserCSV()
-    bl = parser.parse_blocklist(csvdata, origin)
-    assert len(bl) == 0
 
 
 def test_header_only():

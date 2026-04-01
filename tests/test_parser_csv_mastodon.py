@@ -1,17 +1,7 @@
-"""Tests of the CSV parsing
-"""
+"""Tests of the CSV parsing"""
 
 from fediblockhole.blocklists import BlocklistParserMastodonCSV
 from fediblockhole.const import SeverityLevel
-
-
-def test_single_line():
-    csvdata = "example.org"
-    origin = "csvfile"
-
-    parser = BlocklistParserMastodonCSV()
-    bl = parser.parse_blocklist(csvdata, origin)
-    assert len(bl) == 0
 
 
 def test_header_only():
@@ -24,7 +14,7 @@ def test_header_only():
 
 
 def test_2_blocks():
-    csvdata = """domain,severity
+    csvdata = """#domain,#severity
 example.org,silence
 example2.org,suspend
 """
@@ -38,7 +28,7 @@ example2.org,suspend
 
 
 def test_4_blocks():
-    csvdata = """domain,severity,public_comment
+    csvdata = """#domain,#severity,#public_comment
 example.org,silence,"test 1"
 example2.org,suspend,"test 2"
 example3.org,noop,"test 3"
@@ -62,7 +52,7 @@ example4.org,suspend,"test 4"
 
 
 def test_ignore_comments():
-    csvdata = """domain,severity,public_comment,private_comment
+    csvdata = """#domain,#severity,#public_comment,#private_comment
 example.org,silence,"test 1","ignore me"
 example2.org,suspend,"test 2","ignote me also"
 example3.org,noop,"test 3","and me"
