@@ -1,5 +1,4 @@
-"""Test merge with thresholds
-"""
+"""Test merge with thresholds"""
 
 from fediblockhole import merge_blocklists
 from fediblockhole.blocklists import Blocklist, parse_blocklist

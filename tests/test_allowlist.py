@@ -1,5 +1,4 @@
-""" Test allowlists
-"""
+"""Test allowlists"""
 
 import pytest
 from util import shim_argparse

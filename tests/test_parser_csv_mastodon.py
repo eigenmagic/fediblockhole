@@ -1,5 +1,4 @@
-"""Tests of the CSV parsing
-"""
+"""Tests of the CSV parsing"""
 
 from fediblockhole.blocklists import BlocklistParserMastodonCSV
 from fediblockhole.const import SeverityLevel

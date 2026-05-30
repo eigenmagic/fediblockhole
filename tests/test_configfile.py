@@ -1,5 +1,4 @@
-"""Test the config file is loading parameters correctly
-"""
+"""Test the config file is loading parameters correctly"""
 
 from textwrap import dedent
 
@@ -95,16 +94,14 @@ merge_threshold = 35
 
 
 def test_destination_token_from_environment(monkeypatch):
-    tomldata = dedent(
-        """\
+    tomldata = dedent("""\
     blocklist_instance_destinations = [
       { domain='example.com', token='raw-token'},
       { domain='example2.com', token_env_var='TOKEN_ENV_VAR' },
       { domain='env-token.com' },
       { domain='www.env-token.com' },
     ]
-    """
-    )
+    """)
 
     monkeypatch.setenv("TOKEN_ENV_VAR", "env-token")
     monkeypatch.setenv("ENV-TOKEN_COM_TOKEN", "env-token")
@@ -119,16 +116,14 @@ def test_destination_token_from_environment(monkeypatch):
 
 
 def test_instance_sources_token_from_environment(monkeypatch):
-    tomldata = dedent(
-        """\
+    tomldata = dedent("""\
     blocklist_instance_sources = [
       { domain='example.com', token='raw-token'},
       { domain='example2.com', token_env_var='TOKEN_ENV_VAR' },
       { domain='env-token.com' },
       { domain='www.env-token.com' },
     ]
-    """
-    )
+    """)
 
     monkeypatch.setenv("TOKEN_ENV_VAR", "env-token")
     monkeypatch.setenv("ENV-TOKEN_COM_TOKEN", "env-token")
