@@ -1,5 +1,4 @@
-""" Constant objects used by FediBlockHole
-"""
+"""Constant objects used by FediBlockHole"""
 
 from __future__ import annotations
 

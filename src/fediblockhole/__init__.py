@@ -1,5 +1,4 @@
-"""A tool for managing federated Mastodon blocklists
-"""
+"""A tool for managing federated Mastodon blocklists"""
 
 from __future__ import annotations
 

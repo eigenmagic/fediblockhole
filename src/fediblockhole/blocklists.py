@@ -1,5 +1,4 @@
-"""Parse various blocklist data formats
-"""
+"""Parse various blocklist data formats"""
 
 from __future__ import annotations
 
