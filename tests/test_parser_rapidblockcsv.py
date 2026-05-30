@@ -1,5 +1,4 @@
-"""Tests of the Rapidblock CSV parsing
-"""
+"""Tests of the Rapidblock CSV parsing"""
 
 from fediblockhole.blocklists import RapidBlockParserCSV
 from fediblockhole.const import SeverityLevel

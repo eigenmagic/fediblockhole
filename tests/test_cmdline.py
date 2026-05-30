@@ -1,5 +1,4 @@
-"""Test the commandline defined parameters correctly
-"""
+"""Test the commandline defined parameters correctly"""
 
 from fediblockhole import setup_argparse
 
