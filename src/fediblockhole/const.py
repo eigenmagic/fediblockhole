@@ -22,7 +22,7 @@ class BlockSeverity(object):
     We add some helpful functions rather than using a bare IntEnum
     """
 
-    def __init__(self, severity: str = None):
+    def __init__(self, severity: str | None = None):
         self._level = self.str2level(severity)
 
     @property
@@ -38,7 +38,7 @@ class BlockSeverity(object):
         else:
             raise ValueError(f"Invalid level value '{value}'")
 
-    def str2level(self, severity: str = None):
+    def str2level(self, severity: str | None = None):
         """Convert a string severity level to an internal enum"""
 
         if severity in [None, "", "noop"]:
@@ -87,7 +87,6 @@ class BlockSeverity(object):
 
 
 class BlockAudit(object):
-
     fields = [
         "domain",
         "count",
@@ -161,7 +160,6 @@ class BlockAudit(object):
 
 
 class DomainBlock(object):
-
     fields = [
         "domain",
         "severity",
@@ -186,16 +184,18 @@ class DomainBlock(object):
     def __init__(
         self,
         domain: str,
-        severity: BlockSeverity = BlockSeverity("suspend"),
+        severity: str | BlockSeverity = BlockSeverity("suspend"),
         public_comment: str = "",
         private_comment: str = "",
         reject_media: bool = False,
         reject_reports: bool = False,
         obfuscate: bool = False,
-        id: int = None,
+        id: int | None = None,
     ):
         """Initialize the DomainBlock"""
         self.domain = domain
+        if isinstance(severity, str):
+            severity = BlockSeverity(severity)
         self.severity = severity
         self.public_comment = public_comment
         self.private_comment = private_comment

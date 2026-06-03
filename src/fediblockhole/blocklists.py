@@ -6,9 +6,12 @@ import csv
 import json
 import logging
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 
 from .const import BlockAudit, BlockSeverity, DomainBlock
+
+if TYPE_CHECKING:
+    from typing import Any
 
 log = logging.getLogger("fediblockhole")
 
@@ -20,7 +23,7 @@ class Blocklist:
     A Blocklist is a list of DomainBlocks from an origin
     """
 
-    origin: str = None
+    origin: str | None = None
     blocks: dict[str, DomainBlock] = field(default_factory=dict)
 
     def __len__(self):
@@ -49,7 +52,7 @@ class BlockAuditList:
     A BlockAuditlist is a list of BlockAudits from an origin
     """
 
-    origin: str = None
+    origin: str | None = None
     blocks: dict[str, BlockAudit] = field(default_factory=dict)
 
     def __len__(self):
@@ -80,7 +83,7 @@ class BlocklistParser(object):
 
     def __init__(
         self,
-        import_fields: list = ["domain", "severity"],
+        import_fields: list[str] | None = None,
         max_severity: str = "suspend",
     ):
         """Create a Parser
@@ -88,34 +91,56 @@ class BlocklistParser(object):
         @param import_fields: an optional list of fields to limit the parser to.
             Ignore any fields in a block item that aren't in import_fields.
         """
+        if import_fields is None:
+            import_fields = ["domain", "severity"]
         self.import_fields = import_fields
         self.max_severity = BlockSeverity(max_severity)
+        self._current_origin = None
 
-    def preparse(self, blockdata) -> Iterable:
+    def preparse(self, blockdata: Any) -> Iterable:
         """Some raw datatypes need to be converted into an iterable"""
         raise NotImplementedError
 
-    def parse_blocklist(self, blockdata, origin: str = None) -> Blocklist:
+    def parse_blocklist(self, blockdata: Any, origin: str | None = None) -> Blocklist:
         """Parse an iterable of blocklist items
         @param blocklist: An Iterable of blocklist items
         @returns: A dict of DomainBlocks, keyed by domain
         """
+        self._current_origin = origin
         if self.do_preparse:
             blockdata = self.preparse(blockdata)
 
         parsed_list = Blocklist(origin)
         for blockitem in blockdata:
-            block = self.parse_item(blockitem)
+            try:
+                block = self.parse_item(blockitem)
+            except ValueError as e:
+                loc = self._get_location(blockdata, blockitem)
+                msg = f"Error while loading {loc} from {self._current_origin}: {e}"
+                raise ValueError(msg) from e
             parsed_list.blocks[block.domain] = block
+        # Reset origin
+        self._current_origin = None
         return parsed_list
 
-    def parse_item(self, blockitem) -> DomainBlock:
+    def parse_item(self, blockitem: Any) -> DomainBlock:
         """Parse an individual block item
 
         @param blockitem: an individual block to be parsed
         @param import_fields: fields of a block we will import
         """
         raise NotImplementedError
+
+    def _get_location(self, blockdata: Iterable, blockitem: Any) -> str | None:
+        """
+        Parsers can implement a custom function to return the current parsing location
+
+        @param blockdata: The iterable of data. Might be used by the function to glean
+        the location from
+        @param blockitem: The current data item. Might be used by the function to glean
+        the location from
+        """
+        return None
 
 
 class BlocklistParserJSON(BlocklistParser):
@@ -175,10 +200,25 @@ class BlocklistParserCSV(BlocklistParser):
     """
 
     do_preparse = True
+    required_fieldnames = ["domain"]
+
+    def _get_location(self, blockdata: Iterable, blockitem: Any) -> str | None:
+        assert isinstance(blockdata, csv.DictReader)
+        assert isinstance(blockitem, dict)
+        return f"Line {blockdata.line_num}: {blockitem}"
 
     def preparse(self, blockdata) -> Iterable:
         """Use a csv.DictReader to create an iterable from the blockdata"""
-        return csv.DictReader(blockdata.split("\n"))
+        reader = csv.DictReader(blockdata.split("\n"))
+        assert reader.fieldnames is not None
+        for fieldname in self.required_fieldnames:
+            if fieldname not in reader.fieldnames:
+                msg = (
+                    f"CSV from '{self._current_origin}' is missing the "
+                    f"'{fieldname}' field. Maybe the header row is missing?"
+                )
+                raise KeyError(msg)
+        return reader
 
     def parse_item(self, blockitem: dict) -> DomainBlock:
         # Coerce booleans from string to Python bool
@@ -210,6 +250,7 @@ class BlocklistParserMastodonCSV(BlocklistParserCSV):
     """
 
     do_preparse = True
+    required_fieldnames = ["#domain"]
 
     def parse_item(self, blockitem: dict) -> DomainBlock:
         """Build a new blockitem dict with new un-#ed keys"""
@@ -226,6 +267,8 @@ class RapidBlockParserCSV(BlocklistParserCSV):
 
     RapidBlock CSV blocklists are just a newline separated list of domains.
     """
+
+    required_fieldnames = []
 
     def preparse(self, blockdata) -> Iterable:
         """Prepend a 'domain' field header to the data"""
