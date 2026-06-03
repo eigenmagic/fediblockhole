@@ -115,7 +115,8 @@ class BlocklistParser(object):
             try:
                 block = self.parse_item(blockitem)
             except ValueError as e:
-                msg = f"Error while loading {self._get_location(blockdata, blockitem)} from {self._current_origin}: {e}"
+                loc = self._get_location(blockdata, blockitem)
+                msg = f"Error while loading {loc} from {self._current_origin}: {e}"
                 raise ValueError(msg) from e
             parsed_list.blocks[block.domain] = block
         # Reset origin
@@ -131,10 +132,13 @@ class BlocklistParser(object):
         raise NotImplementedError
 
     def _get_location(self, blockdata: Iterable, blockitem: Any) -> str | None:
-        """Parsers can implement a custom function to return the current parsing location
+        """
+        Parsers can implement a custom function to return the current parsing location
 
-        @param blockdata: The iterable of data. Might be used by the function to glean the location from
-        @param blockitem: The current data item. Might be used by the function to glean the location from
+        @param blockdata: The iterable of data. Might be used by the function to glean
+        the location from
+        @param blockitem: The current data item. Might be used by the function to glean
+        the location from
         """
         return None
 
@@ -209,7 +213,10 @@ class BlocklistParserCSV(BlocklistParser):
         assert reader.fieldnames is not None
         for fieldname in self.required_fieldnames:
             if fieldname not in reader.fieldnames:
-                msg = f"CSV from '{self._current_origin}' is missing the '{fieldname}' field. Maybe the header row is missing?"
+                msg = (
+                    f"CSV from '{self._current_origin}' is missing the "
+                    f"'{fieldname}' field. Maybe the header row is missing?"
+                )
                 raise KeyError(msg)
         return reader
 
