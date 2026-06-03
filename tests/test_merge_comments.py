@@ -1,5 +1,4 @@
-""" Test merging of comments
-"""
+"""Test merging of comments"""
 
 from fediblockhole import merge_comments
 

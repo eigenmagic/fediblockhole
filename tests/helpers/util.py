@@ -1,11 +1,10 @@
-""" Utility functions for tests
-"""
+"""Utility functions for tests"""
+
 from fediblockhole import setup_argparse, augment_args
 
 
 def shim_argparse(testargv: list = [], tomldata: str = None):
-    """Helper function to parse test args
-    """
+    """Helper function to parse test args"""
     ap = setup_argparse()
     args = ap.parse_args(testargv)
     if tomldata is not None:

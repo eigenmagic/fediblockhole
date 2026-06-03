@@ -1,5 +1,4 @@
-"""Test parsing the RapidBlock JSON format
-"""
+"""Test parsing the RapidBlock JSON format"""
 
 from fediblockhole.blocklists import parse_blocklist
 from fediblockhole.const import SeverityLevel

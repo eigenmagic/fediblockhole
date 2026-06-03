@@ -1,5 +1,4 @@
-"""Various mergeplan tests
-"""
+"""Various mergeplan tests"""
 
 from fediblockhole import apply_mergeplan, merge_blocklists, merge_comments
 from fediblockhole.blocklists import parse_blocklist

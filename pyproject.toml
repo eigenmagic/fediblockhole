@@ -48,5 +48,11 @@ norecursedirs = [
 [dependency-groups]
 dev = [
   "coverage[toml]>=7.6.1",
-  "pytest~=8.3",
+  "pytest ~= 8.3",
+  "flake8>=5.0.4",
+  "black>=24.8.0",
 ]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']

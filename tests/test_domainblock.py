@@ -1,5 +1,4 @@
-"""Test the DomainBlock structure
-"""
+"""Test the DomainBlock structure"""
 
 import pytest
 
